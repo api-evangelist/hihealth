@@ -1,0 +1,35 @@
+generated: '2026-07-19'
+method: searched
+source: https://partner.getpliant.com/llms.txt
+standards:
+- id: oauth2
+  conforms: true
+  evidence: >-
+    OAuth2 client_credentials via Auth0; documented at
+    partner.getpliant.com/docs/authenticated-api-usage.md
+- id: pci-dss
+  conforms: true
+  evidence: >-
+    PCI-DSS-certified sensitive-card-data path served on a dedicated host
+    (pci-api.getpliant.com) with PCI-Proxy tokenization for PAN/CVV retrieval.
+- id: sepa-instant-vop
+  conforms: true
+  evidence: >-
+    Implements Verification of Payee (VoP) name-check mandated under the SEPA
+    Instant Payments Regulation (IPR) for SCT/SCT Inst transfers (create-vop-verification).
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: Documented error handling does not advertise application/problem+json.
+- id: fhir-r4
+  conforms: false
+- id: fapi
+  conforms: false
+compliance:
+  published: true
+  programs:
+  - PCI DSS
+  docs: https://www.getpliant.com/
+  notes: >-
+    Pliant advertises PCI-DSS certification for the card-data path. No public
+    trust center enumerating SOC 2 / ISO 27001 certifications was located at
+    trust.getpliant.com / security.getpliant.com at probe time.

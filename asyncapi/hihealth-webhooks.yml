@@ -1,0 +1,40 @@
+generated: '2026-07-19'
+method: searched
+source: https://partner.getpliant.com/docs/callbacks.md
+spec_type: Webhooks
+transport: HTTP callbacks (partner-registered callbackUrl)
+subscription_model: >-
+  Partners subscribe per entity via callback-subscription endpoints (e.g.
+  create-organization-subscription, create-onboarding-submission-subscription).
+  A callback log is queryable (GET /callbacks, GET /callbacks/{callbackId}) and
+  missed callbacks can be redelivered via POST /callbacks/resend.
+security:
+  signature: Ed25519
+  verification_docs: https://partner.getpliant.com/docs/authenticated-callback-usage.md
+  notes: Callbacks are authenticated and signed; verify the Ed25519 signature before processing.
+events:
+- group: Card
+  events:
+  - CARD_ISSUED
+  - CARD_ACTIVATED
+  - CARD_STATUS_CHANGED
+  - CARD_BALANCE_UPDATED
+  - CARD_TERMINATED
+- group: Onboarding submission
+  events:
+  - SUBMISSION_SUBMITTED
+  - SUBMISSION_IN_APPROVAL_PLIANT
+  - SUBMISSION_IN_APPROVAL_BANKINGPARTNER
+  - SUBMISSION_APPROVED
+  - SUBMISSION_REJECTED
+  - SUBMISSION_NEEDS_MORE_INFO
+  - SUBMISSION_WITHDRAWN
+- group: Transaction / Receipt
+  events:
+  - Transaction automatch result (receipt automatcher callback)
+  - Organization status-change callbacks
+notes: >-
+  Pliant calls these "callbacks". No published AsyncAPI document was found; this
+  is the documented webhook/event catalog captured as a Webhooks surface. The
+  asynchronous, callback-driven model is core to the API (write endpoints return
+  202 and completion is signalled by these events).

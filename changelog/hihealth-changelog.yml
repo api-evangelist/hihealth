@@ -1,0 +1,28 @@
+generated: '2026-07-19'
+method: searched
+source: https://partner.getpliant.com/subscribe-to-updates.md
+scheme: dated changelog with email subscription
+current_version: v2.1.0
+changelog_url: https://partner.getpliant.com/subscribe-to-updates.md
+entries:
+- version: v2.1.0
+  date: null
+  breaking: false
+  highlights:
+  - >-
+    Card responses gained `cardControls`; the `type` field was deprecated in
+    favour of `cardConfig` across card issue/replace/detail endpoints.
+  - >-
+    Callback log endpoints (GET /callbacklog, GET /callbacklog/{id}) deprecated in
+    favour of GET /callbacks and GET /callbacks/{callbackId}; added POST
+    /callbacks/resend for redelivery.
+  - >-
+    Added External Transfers + Beneficiary management and Verification of Payee
+    (VoP) for SEPA Instant compliance.
+  - >-
+    Transaction detail responses replaced `merchantId`/`merchantName` with
+    structured `merchantData`/`merchantRawData` objects and added `authCode`.
+notes: >-
+  Version and change highlights derived from the per-endpoint change notes in the
+  published API reference (llms.txt). Exact release dates are not enumerated in the
+  index; the live changelog at the source URL is authoritative.

@@ -1,0 +1,23 @@
+generated: '2026-07-19'
+method: searched
+source: https://partner.getpliant.com/llms.txt
+versioning:
+  scheme: documented API lifecycle & versioning
+  current: v2.1.0
+  docs: https://partner.getpliant.com/docs/versioning.md
+deprecation:
+  policy_url: https://partner.getpliant.com/docs/versioning.md
+  notes: >-
+    Endpoints and fields are explicitly annotated as deprecated in the reference
+    with migration guidance (e.g. the `type` card field deprecated in favour of
+    `cardConfig`; GET /callbacks/{callbackId} replacing the deprecated callback-log
+    endpoints).
+status_page: https://help.getpliant.com/
+sla:
+  url: https://help.getpliant.com/
+deprecated_operations:
+- https://partner.getpliant.com/reference/get-callback-log.md
+- https://partner.getpliant.com/reference/get-callback-details.md
+notes: >-
+  Current CaaS API version is v2.1.0. Deprecations are communicated per-endpoint
+  in the reference and via the changelog (subscribe-to-updates).

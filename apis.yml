@@ -1,20 +1,84 @@
 aid: hihealth
+accessModel:
+  pricing: unknown
+  onboarding: self-serve
+  trial: false
+  try_now: false
+  public: false
+  label: Self-serve signup
+  confidence: medium
+  source:
+  - authentication
+  generated: '2026-07-22'
+  method: derived
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/hihealth.png
 name: hi.health
-description: hi.health is a company surfaced as a portfolio company of seedcamp and added to the API Evangelist
-  network as a stub for enrichment. This profile is a lead awaiting the enrichment pipeline.
+description: >-
+  hi.health is a cashless, real-time claims and payments platform for the
+  insurance industry, now operated as "hi.health by Pliant" after joining Pliant.
+  It replaces legacy reimbursement models with instantly issued virtual and
+  physical cards whose spend is programmatically controlled per policy, merchant,
+  currency and country. Members pay nothing upfront: eligible claims are settled
+  in real time at the point of care across health, home, travel, corporate and
+  auto insurance lines, and structured transaction data is streamed back to
+  insurers for dashboards, reconciliation and fraud prevention. The developer
+  surface is Pliant's PCI-DSS-certified Cards-as-a-Service (CaaS) and Pro API:
+  OAuth2 client-credentials access, asynchronous callback/webhook events, and a
+  full sandbox, which partners embed to issue and manage cards, cardholders,
+  transactions, receipts, payments and external transfers.
 url: https://raw.githubusercontent.com/api-evangelist/hihealth/refs/heads/main/apis.yml
 x-type: company
 x-source: vc-portfolio
 x-backed-by:
 - seedcamp
-x-tier: stub
-x-tier-reason: portfolio-lead
+x-acquired-by: pliant
+x-tier: profiled
+x-tier-reason: enriched-from-provider-surface
 specificationVersion: '0.20'
 created: '2026-07-17'
-modified: '2026-07-17'
+modified: '2026-07-19'
 tags:
 - Company
-apis: []
+- Insurance
+- Payments
+- Cards
+- Fintech
+- Health
+- Cards-as-a-Service
+- Embedded Finance
+- Reimbursement
+- Claims
+apis:
+- name: Pliant Cards-as-a-Service (CaaS) API
+  description: >-
+    The embedded credit-card API that powers hi.health. Partners issue and manage
+    cards, cardholders, transactions, receipts, payments, statements and external
+    transfers, with OAuth2 client-credentials auth, asynchronous callbacks and a
+    PCI-DSS-certified data path (pci-api.getpliant.com).
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  properties:
+  - type: Documentation
+    url: https://partner.getpliant.com/
+  - type: APIReference
+    url: https://partner.getpliant.com/reference
+  - type: GettingStarted
+    url: https://partner.getpliant.com/docs/introduction.md
+  - type: Authentication
+    url: https://partner.getpliant.com/docs/authenticated-api-usage.md
+  - type: LLMsTxt
+    url: llms/hihealth-llms.txt
+- name: Pliant Pro API
+  description: >-
+    The customer-facing Pro API for programmatic access to Pliant credit-card data
+    and features (cards, cardholders, transactions, receipts, accounting, payments).
+  humanURL: https://customer-api.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  properties:
+  - type: Documentation
+    url: https://customer-api.getpliant.com/
+  - type: APIReference
+    url: https://customer-api.getpliant.com/reference
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
@@ -22,4 +86,59 @@ maintainers:
   email: info@apis.io
 common:
 - type: Website
-  url: http://hi.health
+  url: https://www.getpliant.com/en/industry/insurance-payments/
+- type: DeveloperPortal
+  url: https://partner.getpliant.com/
+- type: Documentation
+  url: https://partner.getpliant.com/
+- type: APIReference
+  url: https://partner.getpliant.com/reference
+- type: GettingStarted
+  url: https://partner.getpliant.com/docs/introduction.md
+- type: Support
+  url: https://help.getpliant.com/
+- type: StatusPage
+  url: https://help.getpliant.com/
+- type: Deprecation
+  url: https://partner.getpliant.com/docs/versioning.md
+- type: Authentication
+  url: authentication/hihealth-authentication.yml
+- type: OAuthScopes
+  url: scopes/hihealth-scopes.yml
+- type: Conventions
+  url: conventions/hihealth-conventions.yml
+- type: RateLimits
+  url: rate-limits/hihealth-rate-limits.yml
+- type: ErrorCatalog
+  url: errors/hihealth-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/hihealth-lifecycle.yml
+- type: Sandbox
+  url: sandbox/hihealth-sandbox.yml
+- type: Webhooks
+  url: asyncapi/hihealth-webhooks.yml
+- type: MCPServer
+  url: mcp/hihealth-mcp.yml
+- type: LLMsTxt
+  url: llms/hihealth-llms.txt
+- type: WellKnown
+  url: well-known/hihealth-well-known.yml
+- type: SecurityTxt
+  url: well-known/hihealth-security.txt
+- type: VulnerabilityDisclosure
+  url: security/hihealth-vulnerability-disclosure.yml
+- type: Security
+  url: https://www.getpliant.com/.well-known/security.txt
+- type: DomainSecurity
+  url: security/hihealth-domain-security.yml
+- type: Conformance
+  url: conformance/hihealth-conformance.yml
+- type: Compliance
+  url: conformance/hihealth-conformance.yml
+- type: ChangeLog
+  url: changelog/hihealth-changelog.yml
+x-enrichment:
+  date: '2026-07-19'
+  status: backfilled
+  pass: local-v1
+  note: backfilled from .gitignore signal + verified work evidence

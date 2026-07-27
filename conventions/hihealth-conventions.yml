@@ -1,0 +1,48 @@
+generated: '2026-07-19'
+method: searched
+source: https://partner.getpliant.com/llms.txt
+docs: https://partner.getpliant.com/docs/pliant-api-guidelines.md
+authentication:
+  style: OAuth2 client_credentials (Auth0), Bearer token in Authorization header
+  ref: authentication/hihealth-authentication.yml
+async_model:
+  description: >-
+    Mutating operations are asynchronous. Many write endpoints return 202 Accepted
+    and complete out-of-band; clients rely on callbacks (webhooks) to learn when
+    the entity reaches its final state (e.g. a card becomes ACTIVE).
+  docs: https://partner.getpliant.com/docs/core-concepts.md
+pagination:
+  style: page-number
+  params:
+  - limit
+  - page
+  - sortBy
+  - sortDirection
+  docs: https://partner.getpliant.com/docs/pagination.md
+idempotency:
+  supported: false
+  notes: >-
+    No Idempotency-Key header or idempotency guidance is documented in the API
+    guidelines; safety on retries is instead handled through the asynchronous
+    callback model and explicit status queries.
+error_envelope:
+  format: http-status + JSON error body
+  docs: https://partner.getpliant.com/docs/error-handling.md
+  ref: errors/hihealth-problem-types.yml
+monetary_values:
+  docs: https://partner.getpliant.com/docs/monetary-values.md
+  notes: Amounts follow Pliant's documented minor-unit / currency conventions.
+date_time:
+  docs: https://partner.getpliant.com/docs/date-and-time.md
+versioning:
+  scheme: documented API lifecycle & versioning
+  docs: https://partner.getpliant.com/docs/versioning.md
+  ref: lifecycle/hihealth-lifecycle.yml
+rate_limiting:
+  limit: 900 requests / 5 minutes per IP
+  response_status: 429
+  ref: rate-limits/hihealth-rate-limits.yml
+callbacks:
+  description: Authenticated callbacks (webhooks) with Ed25519 signature verification.
+  docs: https://partner.getpliant.com/docs/authenticated-callback-usage.md
+  ref: asyncapi/hihealth-webhooks.yml

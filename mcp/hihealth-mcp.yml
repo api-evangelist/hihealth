@@ -1,0 +1,32 @@
+generated: '2026-07-19'
+method: searched
+status: published
+source: https://partner.getpliant.com/docs/mcp.md
+servers:
+- name: pliant-caas-partner
+  transport: http
+  url: https://partner.getpliant.com/mcp
+  docs: https://partner.getpliant.com/docs/mcp.md
+  auth: >-
+    Headers (e.g. Bearer token) are passed through the MCP client configuration
+    per the docs; the underlying CaaS API uses OAuth2 client_credentials.
+- name: pliant-pro-customer
+  transport: http
+  url: https://customer-api.getpliant.com/mcp
+  docs: https://customer-api.getpliant.com/docs/mcp.md
+capabilities:
+- Direct API access to the CaaS / Pro API functionality
+- Documentation search
+- Real-time account data retrieval
+- Code-generation assistance for integrations
+install_example: |
+  {
+    "mcpServers": {
+      "pliant-partner-api": {
+        "url": "https://partner.getpliant.com/mcp"
+      }
+    }
+  }
+notes: >-
+  Officially hosted, remote HTTP MCP servers published by Pliant (the platform
+  powering hi.health) for both the Partner CaaS API and the customer Pro API.

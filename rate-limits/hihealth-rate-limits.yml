@@ -1,0 +1,18 @@
+generated: '2026-07-19'
+method: searched
+source: https://partner.getpliant.com/docs/pliant-api-guidelines.md
+rate_limits:
+- name: Pliant API default
+  limit_count: 900
+  window: 5 minutes
+  scope: per IP address
+  response_status: 429
+  response_reason: HTTP/1.1 429 Too Many Requests
+  enforcement: >-
+    Exceeding the threshold results in temporary blocking of the IP and a 429
+    response. The guidelines recommend batch endpoints over per-item requests and
+    client-side caching to stay under the limit.
+notes: >-
+  Auth0 token endpoints are separately rate-managed; the guidelines advise
+  fetching a new Bearer token only shortly before its 24h TTL expires rather than
+  per request.

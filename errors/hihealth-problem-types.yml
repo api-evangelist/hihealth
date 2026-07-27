@@ -1,0 +1,34 @@
+generated: '2026-07-19'
+method: searched
+source: https://partner.getpliant.com/docs/error-handling.md
+format: http-status
+docs: https://partner.getpliant.com/docs/error-handling.md
+problems:
+- status: 202
+  title: Accepted (asynchronous processing)
+  description: >-
+    Write operations are accepted for asynchronous processing; the final result
+    is delivered via callback rather than in the response body.
+- status: 403
+  title: Forbidden
+  description: >-
+    The caller is not authorized for the requested resource/organization (e.g. a
+    resend-callbacks request referencing an organization outside the partner's
+    scope of access).
+  source_operation: https://partner.getpliant.com/reference/resend-callbacks.md
+- status: 409
+  title: Conflict
+  description: >-
+    The requested state transition is not allowed (e.g. cancelling an onboarding
+    submission that is already in a terminal state).
+  source_operation: https://partner.getpliant.com/reference/cancel-onboarding-submission.md
+- status: 429
+  title: Too Many Requests
+  description: >-
+    Rate limit exceeded (900 requests / 5 minutes per IP); the IP is temporarily
+    blocked.
+  source_operation: https://partner.getpliant.com/docs/pliant-api-guidelines.md
+notes: >-
+  Derived from documented HTTP status conventions and per-endpoint error notes in
+  the published reference. Pliant does not advertise RFC 9457 application/problem+json;
+  the error-handling guide is the authoritative envelope reference.

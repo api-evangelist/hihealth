@@ -1,0 +1,19 @@
+generated: '2026-07-19'
+method: searched
+source: live probes of getpliant.com and API hosts
+host: https://www.getpliant.com
+documents:
+- path: /.well-known/security.txt
+  status: 200
+  file: hihealth-security.txt
+- path: /.well-known/openid-configuration
+  status: 404
+- path: /.well-known/oauth-authorization-server
+  status: 404
+- path: /.well-known/api-catalog
+  status: 404
+notes: >-
+  security.txt is served at the getpliant.com apex (Canonical points there).
+  OAuth is delegated to Auth0 tenants (eu.auth0.com), so no OIDC/OAuth discovery
+  document is served on the getpliant.com hosts. partner.getpliant.com and
+  customer-api.getpliant.com publish /llms.txt (200) but not /.well-known/security.txt.

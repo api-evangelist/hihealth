@@ -1,0 +1,31 @@
+generated: '2026-07-19'
+method: searched
+source: https://partner.getpliant.com/docs/introduction-to-scopes.md
+docs: https://partner.getpliant.com/docs/introduction-to-scopes.md
+schemes:
+- name: OAuth2ClientCredentials
+  identity_provider: Auth0
+  flow: clientCredentials
+  tokenUrl: https://infinnityprodinternal.eu.auth0.com/oauth/token
+notes: >-
+  Pliant models partner access as documented "scopes" that gate which parts of
+  the CaaS API a partner integration may use (endpoint permissions are documented
+  at /docs/endpoint-permissions). These are integration access tiers rather than
+  free-form OAuth scope strings; the concrete grant is provisioned during partner
+  onboarding.
+scopes:
+- scope: sync
+  description: >-
+    Sync scope: read/expense-management integration for pulling card, transaction
+    and receipt data into a partner's own application (expense management use case).
+  docs: https://partner.getpliant.com/docs/sync-scope.md
+- scope: embedded-wallet
+  description: >-
+    Embedded Wallet scope: embed Pliant cards and wallet functionality inside a
+    partner application.
+  docs: https://partner.getpliant.com/docs/embedded-wallet-scope.md
+- scope: fully-embedded
+  description: >-
+    Fully Embedded scope: the deepest integration tier, embedding the full
+    card-issuing and management lifecycle in the partner product.
+  docs: https://partner.getpliant.com/docs/fully-embedded-scope.md

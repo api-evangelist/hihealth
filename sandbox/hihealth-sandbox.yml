@@ -1,0 +1,36 @@
+generated: '2026-07-19'
+method: searched
+source: https://partner.getpliant.com/llms.txt
+docs: https://partner.getpliant.com/docs/generate-test-transactions.md
+environments:
+  sandbox:
+    api_base: https://sandbox.partner-api.getpliant.com/api/
+    pci_base: https://pci-sandbox.partner-api.getpliant.com/
+    token_url: https://infinnitystaginginternal.eu.auth0.com/oauth/token
+    audience: api.staging.infinnitytest.com/api/integration
+  production:
+    api_base: https://partner-api.getpliant.com/api/
+    pci_base: https://pci-api.getpliant.com
+    token_url: https://infinnityprodinternal.eu.auth0.com/oauth/token
+    audience: api.getpliant.com/api/integration
+  docs: https://partner.getpliant.com/docs/environment.md
+test_values:
+- name: Physical card activation code (sandbox)
+  value: '999999'
+  usage: >-
+    Activate a physical card in the sandbox using activationCode 999999, or the
+    card's refNum from Card Details, via the activate-physical-card endpoint.
+sandbox_only_endpoints:
+- name: Generate Test Transactions
+  ref: https://partner.getpliant.com/reference/generate-test-transactions-in-sandbox.md
+  description: Generate one or more test transactions to exercise transaction endpoints/callbacks.
+- name: Simulate Transaction Status Transition
+  ref: https://partner.getpliant.com/reference/simulate-transaction-status-transition.md
+  description: Move a sandbox transaction PENDING -> CONFIRMED / REVERSED / DECLINED.
+- name: Simulate Prefund Payment
+  ref: https://partner.getpliant.com/reference/simulate-prefund-payment.md
+  description: Simulate a prefund payment to a card account (appears within ~10 minutes).
+notes: >-
+  These simulation endpoints are available ONLY on the sandbox environment and
+  not on production. Virtual cards activate automatically on creation when the
+  cardholder is active.
