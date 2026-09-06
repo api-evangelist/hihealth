@@ -96,6 +96,18 @@ maintainers:
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: Blog
+  url: https://getpliant.com/en/blog
+- type: Pricing
+  url: https://getpliant.com/en/pricing
+- type: SignUp
+  url: https://app.getpliant.com/?language=en
+- type: PrivacyPolicy
+  url: https://getpliant.com/en/privacy-policy
+- type: TermsOfService
+  url: https://getpliant.com/en/imprint
+- type: LinkedIn
+  url: https://www.linkedin.com/company/getpliant
 - type: Website
   url: https://www.getpliant.com/en/industry/insurance-payments/
 - type: DeveloperPortal
