@@ -1,0 +1,437 @@
+generated: '2026-10-14'
+method: derived
+generator: derive-vocabulary.py
+source:
+- openapi/hihealth-pliant-customer-api-openapi.yml
+- openapi/hihealth-pliant-partner-api-openapi.yml
+vocabulary:
+  name: hi.health Domain Vocabulary
+  description: 'Terms declared by hi.health''s own API contract: its resource groups, objects and enumerations, with the contract''s definitions.
+    Derived, not authored.'
+  version: '2026-10-14'
+  terms:
+  - term: Organizations
+    definition: This tag is for operations related to organizations
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Card Accounts
+    definition: This tag is for operations related to card accounts
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Cards
+    definition: This tag is for operations related to cards
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Cardholders
+    definition: This tag is for operations related to cardholders
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Card Controls
+    definition: This tag is for operations related to card controls
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Card Sensitive Data
+    definition: This tag is for operations related to card sensitive data
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Card Copilots
+    definition: This tag is for operations related to card copilots
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Custom Fields
+    definition: This tag is for operations related to custom fields
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Transactions
+    definition: This tag is for operations related to transactions
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Receipts
+    definition: This tag is for operations related to receipts
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Receipt Automatching
+    definition: This tag is for operations related to receipt automatching
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Accounting Transactions
+    definition: This tag is for operations related to accounting transactions
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Accounting Projects
+    definition: This tag is for operations related to accounting projects
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Accounting Teams
+    definition: This tag is for operations related to accounting teams
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Payments
+    definition: This tag is for operations related to payments
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Statements
+    definition: This tag is for operations related to statements
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Account Entries
+    definition: This tag is for operations related to account entries
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Callbacks
+    definition: This tag is for operations related to callbacks
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Test Data Generator (Sandbox-only)
+    definition: This tag is for operations related to test data generation
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-customer-api-openapi.yml
+  - term: Card Requests
+    definition: This tag is for operations related to card requests
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Card Limit Requests
+    definition: This tag is for operations related to card limit requests
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Cashback
+    definition: This tag is for operations related to cashback
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Beneficiaries
+    definition: This tag is for operations related to beneficiaries
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: External Transfers
+    definition: This tag is for operations related to external transfers
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Mobile Wallet Tokenization
+    definition: This tag is for operations related to mobile wallet tokenization
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Misc
+    definition: This tag is for miscellaneous operations
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Onboarding Submissions
+    definition: This tag is for operations related to onboarding submissions, including submission lifecycle management, validation, callbacks,
+      and reference data
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Identity Verification
+    definition: This tag is for operations related to identity verification
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Verification of Payee
+    definition: This tag is for operations related to Verification of Payee (VoP) — name-check service mandatory under the SEPA Instant Payments
+      Regulation
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Access Links
+    definition: Create and revoke a shareable access link for a card. The person who opens the link does not need a Pliant account.
+    tags:
+    - Resource Group
+    source: openapi/hihealth-pliant-partner-api-openapi.yml
+  - term: Organization
+    definition: 'Object declared by the contract with fields: organizationId, name, status, vatId, cardAccounts, paymentProgramId.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/Organization
+  - term: Error
+    definition: 'Object declared by the contract with fields: errorCode, exceptionId, message.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/Error
+  - term: OrganizationDetail
+    definition: 'Object declared by the contract with fields: organizationId, name, status, syncType, integrationType, creditLimit, availableLimit,
+      balance, cardsAccounts, tradeName, legalForm, foundationDate. (20 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationDetail
+  - term: OrganizationRiskDetail
+    definition: 'Object declared by the contract with fields: organizationId, name, status, riskAndCompliance, documentsLegal, bankConnectionStatus.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationRiskDetail
+  - term: OrganizationBankAccount
+    definition: 'Object declared by the contract with fields: bankAccountId, bankName, bic, accountNumber, accountNumberType, currency, transfersAllowed.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationBankAccount
+  - term: OrganizationCreate
+    definition: 'Object declared by the contract with fields: name, country, currency, billingAddress, legalForm, vatId, tradeRegisterNumber,
+      nationalRegisterCourt, foundationDate, partnerOrganizationId, metadata, leadData.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationCreate
+  - term: OrganizationCreateResponse
+    definition: 'Object declared by the contract with fields: id, name, country, currency, billingAddress, legalForm, vatId, tradeRegisterNumber,
+      nationalRegisterCourt, foundationDate, accountGroup, accountType. (4 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationCreateResponse
+  - term: OrganizationUpdate
+    definition: 'Object declared by the contract with fields: billingEmail, partnersOrganizationId, partnerOrganizationId, missingReceiptNotifications,
+      vatId, tradeName, deliveryAddress.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationUpdate
+  - term: OrganizationCallback
+    definition: 'Object declared by the contract with fields: organizationId, partnerOrganizationId, status, syncType, integrationType, cardAccounts,
+      fxFeePercentage.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationCallback
+  - term: OrganizationBalanceCallback
+    definition: 'Object declared by the contract with fields: organizationId, partnerOrganizationId, creditLimit, availableLimit, balance.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationBalanceCallback
+  - term: OrganizationAuthorizationCallback
+    definition: 'Object declared by the contract with fields: partnerId, organizationId, partnerOrganizationId.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationAuthorizationCallback
+  - term: OrganizationBankConnectionStatusCallback
+    definition: 'Object declared by the contract with fields: organizationId, partnerOrganizationId, statusChange.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationBankConnectionStatusCallback
+  - term: OrganizationDirectDebitStatusCallback
+    definition: 'Object declared by the contract with fields: organizationId, partnerOrganizationId, statusChange.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationDirectDebitStatusCallback
+  - term: OrganizationDocumentCustomerStatusCallback
+    definition: 'Object declared by the contract with fields: organizationId, partnerOrganizationId, category, statusChange.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationDocumentCustomerStatusCallback
+  - term: OrganizationRepresentativeLegitimationStatusChangedCallback
+    definition: 'Object declared by the contract with fields: organizationId, partnerOrganizationId, representativeId, statusChange.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationRepresentativeLegitimationStatusChangedCallback
+  - term: OrganizationRepresentativeSubmissionStatusChangedCallback
+    definition: 'Object declared by the contract with fields: organizationId, partnerOrganizationId, representativeId, statusChange.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationRepresentativeSubmissionStatusChangedCallback
+  - term: Event
+    definition: 'Object declared by the contract with fields: eventType.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/Event
+  - term: CardAccount
+    definition: 'Object declared by the contract with fields: id, organizationId, name, purpose, status, currency, bankAccountInformation, defaultAccount,
+      accountType, creditLimit, availableLimit, balance. (8 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardAccount
+  - term: Payment
+    definition: 'Object declared by the contract with fields: paymentId, organizationId, cardAccountId, publicPaymentId, type, method, amount,
+      status.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/Payment
+  - term: Cardholder
+    definition: 'Object declared by the contract with fields: cardholderId.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/Cardholder
+  - term: CardholderDetail
+    definition: 'Object declared by the contract with fields: cardholderId, salutation, firstName, lastName, email, phoneNumber, language, locale,
+      eligibleForPlatformFeeCards, isOwner, status, isEmbedded. (4 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardholderDetail
+  - term: CardholderUpdate
+    definition: 'Object declared by the contract with fields: salutation, firstName, lastName, email, phoneNumber, language, locale, isOwner,
+      dateOfBirth, nationality, personalAddress, deliveryAddress.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardholderUpdate
+  - term: CardholderNew
+    definition: 'Object declared by the contract with fields: organizationId, salutation, firstName, lastName, email, phoneNumber, language, locale,
+      tocConfirmedAt, phoneNumberVerifiedAt, dateOfBirth, nationality. (2 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardholderNew
+  - term: CardholderInvite
+    definition: 'Object declared by the contract with fields: organizationId, salutation, firstName, lastName, email, phoneNumber, language, locale,
+      isOwner, dateOfBirth, nationality, personalAddress. (1 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardholderInvite
+  - term: CardholderOwnerInvite
+    definition: 'Object declared by the contract with fields: organizationId, salutation, firstName, lastName, email, phoneNumber, language, locale.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardholderOwnerInvite
+  - term: CardholderOwner
+    definition: 'Object declared by the contract with fields: cardholderId, isOwner.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardholderOwner
+  - term: CardholderCallback
+    definition: 'Object declared by the contract with fields: organizationId, cardholderId, status, inviteLink, dateOfBirth, nationality, personalAddress,
+      deliveryAddress.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardholderCallback
+  - term: CardholderLegitimationStatusCallback
+    definition: 'Object declared by the contract with fields: organizationId, cardholderId, identityVerificationId, legitimationStatus.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardholderLegitimationStatusCallback
+  - term: Card
+    definition: 'Object declared by the contract with fields: cardId, organizationId, cardAccountId, cardholderId, type, cardConfig, platformFee,
+      cardDesignId, cardDesignLogoName, createdAt, updatedAt.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/Card
+  - term: CardDetail
+    definition: 'Object declared by the contract with fields: cardId, cardRequestId, organizationId, cardholderId, cardAccountId, type, cardConfig,
+      status, pendingDetails, label, purpose, refNum. (28 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardDetail
+  - term: CardDetailBatch
+    definition: 'Object declared by the contract with fields: cardId, cardRequestId, organizationId, cardholderId, cardAccountId, type, cardConfig,
+      status, pendingDetails, label, purpose, refNum. (35 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardDetailBatch
+  - term: CardControls
+    definition: 'Object declared by the contract with fields: categories, merchants, dates, times, locations, countries, currencies, acceptanceMethods.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardControls
+  - term: CardControlsPropertiesResponse
+    definition: Describes the availability of a specific card control for cards issued with this card config.
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardControlsPropertiesResponse
+  - term: CardIssueResponse
+    definition: 'Object declared by the contract with fields: cardId, type, cardConfig, cardDesignId, cardholderId, organizationId, cardAccountId,
+      transactionLimit, monthlyLimit, limit, limitRenewFrequency, expiryDate. (13 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardIssueResponse
+  - term: CardIssueResponseInstant
+    definition: 'Object declared by the contract with fields: cardId, type, cardConfig, cardDesignId, cardholderId, organizationId, cardAccountId,
+      transactionLimit, monthlyLimit, limit, limitRenewFrequency, expiryDate. (17 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardIssueResponseInstant
+  - term: CardIssueResponsePCI
+    definition: 'Object declared by the contract with fields: cardId, type, cardConfig, cardDesignId, cardholderId, organizationId, cardAccountId,
+      transactionLimit, monthlyLimit, limit, limitRenewFrequency, expiryDate. (17 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardIssueResponsePCI
+  - term: CardReplace
+    definition: 'Object declared by the contract with fields: cardId, type, cardholderId, organizationId, transactionLimit, limit, limitRenewFrequency,
+      expiryDate, label, purpose, cardDesign, cardDesignId. (7 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardReplace
+  - term: CardBenefitLoadedCallback
+    definition: 'Object declared by the contract with fields: organizationId, cardId, cardAccountId, loadAmount.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardBenefitLoadedCallback
+  - term: CardBenefitUnloadedCallback
+    definition: 'Object declared by the contract with fields: organizationId, cardId, cardAccountId, unloadAmount.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardBenefitUnloadedCallback
+  - term: CardCallback
+    definition: 'Object declared by the contract with fields: cardId, organizationId, cardholderId, cardAccountId, type, cardConfig, cardDesignId,
+      status, pendingDetails, label, purpose, limitChange. (4 more)'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardCallback
+  - term: CardBalanceCallback
+    definition: 'Object declared by the contract with fields: organizationId, cardholderId, cardId, cardAccountId, availableBalance, spendingBalance,
+      transactionLimit, limit, isBenefit, fundingType, nextLoadDate.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardBalanceCallback
+  - term: CardAvailableBalanceChangedCallback
+    definition: 'Object declared by the contract with fields: organizationId, cardholderId, cardId, cardAccountId, availableBalance.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardAvailableBalanceChangedCallback
+  - term: CardExpiredCallback
+    definition: 'Object declared by the contract with fields: organizationId, cardholderId, cardId, cardAccountId, expirationDate, label, isBenefit,
+      fundingType, nextLoadDate.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardExpiredCallback
+  - term: CardStatusChangedCallback
+    definition: 'Object declared by the contract with fields: cardId, organizationId, cardholderId, cardAccountId, cardConfig, status, pendingDetails,
+      clickToPayInfo, statusBeforeChange.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardStatusChangedCallback
+  - term: CardValidityUpdatedCallback
+    definition: 'Object declared by the contract with fields: cardId, organizationId, cardholderId, cardAccountId, validFrom, validTo, timezone.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardValidityUpdatedCallback
+  - term: CardLimitChangeFailedCallback
+    definition: 'Object declared by the contract with fields: cardId, organizationId, limitChangeFailure, attemptedLimitChange.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardLimitChangeFailedCallback
+  - term: CardClickToPayInfoChangedCallback
+    definition: 'Object declared by the contract with fields: cardId, organizationId, cardholderId, cardAccountId, clickToPayInfo.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardClickToPayInfoChangedCallback
+  - term: CardLimitsChangedCallback
+    definition: 'Object declared by the contract with fields: cardId, cardAccountId, organizationId, cardholderId, additionalLimits.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardLimitsChangedCallback
+  - term: CardAccessLinkRequestedCallback
+    definition: 'Object declared by the contract with fields: cardId, cardholderId, organizationId, accessLink, expiryDate.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardAccessLinkRequestedCallback
+  - term: CardReassignedCallback
+    definition: 'Object declared by the contract with fields: cardId, organizationId, previousCardAccountId, cardAccountId, reassignedAt.'
+    tags:
+    - Object
+    source: openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardReassignedCallback

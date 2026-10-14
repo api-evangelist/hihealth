@@ -1,0 +1,550 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/hihealth/main/json-schema/hihealth-card-detail-schema.json",
+  "title": "CardDetail",
+  "x-generated": "2026-10-14",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardDetail",
+  "type": "object",
+  "properties": {
+    "cardId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the card."
+    },
+    "cardRequestId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "If this card originated from a card request, this field contains the unique identifier of the card request."
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the organization, this card belongs to."
+    },
+    "cardholderId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the cardholder, this card belongs to."
+    },
+    "cardAccountId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the card account, this card belongs to."
+    },
+    "type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "deprecated": true,
+      "description": "Deprecated, please use `cardConfig` instead.\n`VIRTUAL` - Virtual credit card\n`SINGLE_USE` - One-time virtual credit card (only one authorization allowed per card)\n`PHYSICAL` - Physical credit card\n`BLACK` - Physical black premium credit card\n`TRAVEL` - Virtual cards used specifically in travel industry related use cases\n",
+      "enum": [
+        "VIRTUAL",
+        "SINGLE_USE",
+        "PHYSICAL",
+        "BLACK",
+        "TRAVEL"
+      ]
+    },
+    "cardConfig": {
+      "type": "string",
+      "description": "The Pliant card configuration of this card. This describes all feature of this card in one single configuration, e.g. the type of the card and also the design of the card etc. It replaces the deprecated card `type`. Please refer to the [guide section](/docs/card-entity) to learn more about possible values."
+    },
+    "status": {
+      "type": "string",
+      "description": "The status of the card.\n\n**Deprecation Notice:** The status values `PENDING_ACTIVATION`, `PENDING_ISSUANCE`, and `PENDING_REGISTRATION` are deprecated and will be mapped to `PENDING` with appropriate `pendingDetails` in the future. Use `PENDING` with the corresponding `pendingDetails` value instead.\n",
+      "enum": [
+        "PENDING",
+        "PENDING_ACTIVATION",
+        "PENDING_ISSUANCE",
+        "PENDING_REGISTRATION",
+        "REQUEST_APPROVED",
+        "REQUESTED",
+        "REQUEST_CANCELLED",
+        "REQUEST_REJECTED",
+        "ACTIVE",
+        "LOCKED",
+        "LOCKED_PIN",
+        "EXPIRED",
+        "TERMINATED",
+        "TERMINATED_LOST",
+        "TERMINATED_STOLEN"
+      ],
+      "x-enumDescriptions": {
+        "PENDING": "Card is in a pending state. Check `pendingDetails` for the specific reason.",
+        "PENDING_ACTIVATION": "~~(Deprecated) Use `PENDING` with `pendingDetails: PENDING_ACTIVATION` instead.~~",
+        "PENDING_ISSUANCE": "~~(Deprecated) Use `PENDING` with `pendingDetails: PENDING_ISSUANCE` instead.~~",
+        "PENDING_REGISTRATION": "~~(Deprecated) Use `PENDING` with `pendingDetails: PENDING_REGISTRATION` instead.~~",
+        "REQUEST_APPROVED": "Card request has been approved.",
+        "REQUESTED": "Card has been requested.",
+        "REQUEST_CANCELLED": "Card request has been cancelled.",
+        "REQUEST_REJECTED": "Card request has been rejected.",
+        "ACTIVE": "Card is active and can be used.",
+        "LOCKED": "Card is locked.",
+        "LOCKED_PIN": "Card is locked due to PIN issues.",
+        "EXPIRED": "Card has expired.",
+        "TERMINATED": "Card has been terminated.",
+        "TERMINATED_LOST": "Card has been terminated because it was lost.",
+        "TERMINATED_STOLEN": "Card has been terminated because it was stolen."
+      }
+    },
+    "pendingDetails": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The internal reason for a card's pending state. This field is only populated when `status` is `PENDING` or one of the deprecated `PENDING_...` statuses, and will be `null` for all non-pending statuses.\n",
+      "enum": [
+        "PENDING_ACTIVATION",
+        "PENDING_ISSUANCE",
+        "PENDING_REGISTRATION",
+        "PENDING_VALIDITY",
+        "PENDING_SANCTION_SCREEN",
+        "PENDING_INFORMATION"
+      ],
+      "x-enumDescriptions": {
+        "PENDING_ACTIVATION": "Card is pending activation.",
+        "PENDING_ISSUANCE": "Card is pending issuance.",
+        "PENDING_REGISTRATION": "Card is pending registration.",
+        "PENDING_VALIDITY": "Card is pending validity period.",
+        "PENDING_SANCTION_SCREEN": "Card is pending sanction screening.",
+        "PENDING_INFORMATION": "Card is pending additional information."
+      }
+    },
+    "label": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "A short text describing the card. Available only for virtual cards with a `cardConfig` containing `VIRTUAL` or `TRAVEL`. The maximum length is 40 characters.",
+      "maxLength": 40
+    },
+    "purpose": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "A short text describing the card. Available only for virtual cards with a `cardConfig` containing `SINGLE_USE`, the maximum length is 40 characters.",
+      "maxLength": 40
+    },
+    "refNum": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The last 4 digits of the PAN (payment card number), better known as the credit card number. It can be `null` e.g. for terminated cards."
+    },
+    "issuingDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Date-time of card issuing, e.g. `2023-08-23T14:28:53.600608Z`. Can be null e.g. for cards which are requested by a [cardholder](/docs/cardholder-entity) but the request is declined.",
+      "format": "date-time"
+    },
+    "expiryDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Date-time (without nanoseconds) when card expires, e.g. `2026-07-31T23:59:59Z`. For cards with type `SINGLE_USE` this is set to 12 months automatically and every value put here is ignored. Can be null e.g. for cards which are requested by a [cardholder](/docs/cardholder-entity) but the request is declined.",
+      "format": "date-time"
+    },
+    "limit": {
+      "type": "object",
+      "description": "The limit of the card, describing the overall limit of this card. It might get reset regularly depending on the field `limitRenewFrequency`.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+        }
+      }
+    },
+    "transactionLimit": {
+      "type": "object",
+      "description": "The transaction limit of the card, describing the maximum amount a single transaction can have on this card.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+        }
+      }
+    },
+    "spendingBalance": {
+      "type": "object",
+      "description": "The spending balance of the card.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+        }
+      }
+    },
+    "availableBalance": {
+      "type": "object",
+      "description": "The available balance of the card.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+        }
+      }
+    },
+    "token": {
+      "type": "string",
+      "description": "The network token of the card."
+    },
+    "cardDesign": {
+      "type": "string",
+      "description": "The card design of the card on Thredd (Pliant's credit card processor) side."
+    },
+    "productRef": {
+      "type": "string",
+      "deprecated": true,
+      "description": "The product reference of the card on Thredd (Pliant's credit card processor) side. This field is deprecated and will be removed in the future. Use `cardDesignId` instead."
+    },
+    "platformFee": {
+      "type": "boolean",
+      "description": "Whether the card is used for the internal Pliant platform fee or not."
+    },
+    "limitPeriodEnd": {
+      "type": "string",
+      "description": "Date-time (without nanoseconds) when the current limit period ends, e.g. `2023-09-30T23:59:59Z`.",
+      "format": "date-time"
+    },
+    "limitRenewDate": {
+      "type": "string",
+      "description": "Date when the limit will be renewed, e.g. `2023-10-01`.",
+      "format": "date"
+    },
+    "limitRenewFrequency": {
+      "type": "string",
+      "enum": [
+        "DAILY",
+        "WEEKLY",
+        "MONTHLY",
+        "QUARTERLY",
+        "ANNUAL",
+        "TOTAL"
+      ],
+      "description": "Describes how often the limit of the card is renewed.\n  * `DAILY` - The card limit is renewed every day\n  * `WEEKLY` - The card limit is renewed every week\n  * `MONTHLY` - The card limit is renewed every calendar month\n  * `QUARTERLY` - The card limit is renewed every calendar quarter\n  * `ANNUAL` - The card limit is renewed every year\n  * `TOTAL` - The card limit is never going to be renewed. After the limit is spent the card cannot be used anymore.\n"
+    },
+    "customFirstName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Optional first name on `TRAVEL` cards which is used on the card, instead of the regular [cardholder](/docs/cardholder-entity) name. If empty, the regular [cardholder](/docs/cardholder-entity) name is used."
+    },
+    "customLastName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Optional last name on `TRAVEL` cards which is used on the card, instead of the regular [cardholder](/docs/cardholder-entity) name. If empty, the regular [cardholder](/docs/cardholder-entity) name is used."
+    },
+    "replacedByCardId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Filled, if this card was replaced by another card."
+    },
+    "replacedCardId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Filled, if this card replaced another card."
+    },
+    "replacementReason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Describes the reason for the card replacement, if any happened.",
+      "enum": [
+        "DAMAGED",
+        "EXPIRING_SOON",
+        "LOST",
+        "OTHER",
+        "STOLEN"
+      ]
+    },
+    "shippingDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Date-time when the physical card was shipped, e.g. `2023-10-16T11:34:59.595Z`. This field is empty for all other types of cards, or when the physical card is not shipped yet.",
+      "format": "date-time"
+    },
+    "panAlias": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The PAN alias of the card. This is not the real credit card number (PAN) but a alias version of it."
+    },
+    "validFrom": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "Optional field to describe a fixed date range in which the card is usable for purchases. Outside of this date range, the card cannot be used for any purchases, only for zero-amount card-checks, and is shown with `status` `PENDING`. If not provided, the card is active immediately. Date needs to be provided as `yyyy-mm-dd` and is treated inclusive, meaning the provided date is already a valid day to use the card. If used, the parallel usage of card controls regarding `dates` and/or `times` is not allowed and the `validityPeriod` will be set to 36 months automatically. The earliest possible date is the current date. The `validFrom` date needs to be before the `validTo` date. The fields `validFrom`, `validTo` and `validTimezone` need to be used together, if used at all."
+    },
+    "validTo": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "Optional field to describe a fixed date range in which the card is usable for purchases. After the specified date, the card is automatically terminated. If not provided, the card is active until the `validityPeriod` ends. Date needs to be provided as `yyyy-mm-dd` and is treated inclusive, meaning the card will be terminated one day after this date. If used, the parallel usage of card controls regarding `dates` and/or `times` is not allowed and the `validityPeriod` will be set to 36 months automatically. The earliest possible date is the current date. The latest possible date is the end date of the `validityPeriod`. The fields `validFrom`, `validTo` and `validTimezone` need to be used together, if used at all."
+    },
+    "validTimezone": {
+      "type": "string",
+      "description": "Optional field to describe the timezone for the `validFrom` and `validTo` fields. This field is mandatory if `validFrom` and `validTo` fields are used. A list of valid timezones can be found in our [guide section](/docs/card-controls-1)."
+    },
+    "maxTransactionCount": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 999999999,
+      "description": "Optional field to describe the maximum number of transactions within the range of `1..999999999` that can be performed with this card. If not provided, the card can be used for an unlimited number of transactions until the card expires."
+    },
+    "fundingType": {
+      "type": "string",
+      "description": "* `CHARGE` - normal (non-benefit) credit card\n* `LOAD_BASED_ACCRUING` - benefit card where money not spent is transferred to the next month\n* `LOAD_BASED_NON_ACCRUING` - benefit card where money not spent is lost end of month\n* `BALANCE_BASED` - benefit card with a standing balance that persists across months and is spent down until depleted (no monthly reset).\n",
+      "enum": [
+        "CHARGE",
+        "LOAD_BASED_ACCRUING",
+        "LOAD_BASED_NON_ACCRUING",
+        "BALANCE_BASED"
+      ]
+    },
+    "clickToPayInfo": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Click to Pay enrollment information for this card. Only present for Visa cards that support Click to Pay.\nThis object may be `null` if Click to Pay is not supported generally (e.g., per country), but normally it will be present with a `status` of `NOT_SUPPORTED` if the card type doesn't support Click to Pay (e.g., Mastercard or Travel Purchasing Cards).\n",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "The Click to Pay enrollment status of the card.\n* `NOT_SUPPORTED` - Card type doesn't support Click to Pay (e.g., Mastercard or Travel Purchasing Cards)\n* `NOT_ENROLLED` - Card is eligible but not enrolled in Click to Pay\n* `PENDING` - Card enrollment is awaiting the cardholder's Click to Pay member enrollment to complete\n* `ENROLLED` - Card is currently enrolled in Click to Pay\n",
+          "enum": [
+            "NOT_SUPPORTED",
+            "NOT_ENROLLED",
+            "PENDING",
+            "ENROLLED"
+          ],
+          "x-enumDescriptions": {
+            "NOT_SUPPORTED": "Card type doesn't support Click to Pay (e.g., Mastercard or Travel Purchasing Cards).",
+            "NOT_ENROLLED": "Card is eligible but not enrolled in Click to Pay.",
+            "PENDING": "Card enrollment is awaiting the cardholder's Click to Pay member enrollment to complete. Once the member is enrolled, the card enrollment is triggered automatically.",
+            "ENROLLED": "Card is currently enrolled in Click to Pay."
+          }
+        },
+        "enrolledAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Date-time when the card was enrolled in Click to Pay. `null` if the card has never been enrolled."
+        },
+        "unenrolledAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Date-time when the card was unenrolled from Click to Pay. `null` if the card has never been unenrolled."
+        }
+      }
+    },
+    "nextLoadDate": {
+      "type": "string",
+      "format": "date",
+      "description": "For cards that are loaded periodically, indicates the date when the card will be loaded the next time."
+    },
+    "additionalLimits": {
+      "type": "array",
+      "description": "Additional limits on this card. Empty when none are configured. Re-fetch or subscribe to `CARD_LIMITS_CHANGED` to get the latest state after a limit change.",
+      "items": {
+        "type": "object",
+        "description": "An additional limit applied to this card.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The unique identifier of this additional limit. Use this `id` when updating or removing the limit via `PUT /api/cards/limits/{cardId}`."
+          },
+          "limitRenewFrequency": {
+            "type": "string",
+            "enum": [
+              "PER_TRANSACTION",
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY",
+              "QUARTERLY",
+              "ANNUAL",
+              "TOTAL"
+            ],
+            "description": "The renewal frequency of this additional limit. `PER_TRANSACTION` is only valid for additional limits, not for the card's primary limit.\n* `PER_TRANSACTION` - Limit applies to each individual transaction.\n* `DAILY` - The limit is renewed every day.\n* `WEEKLY` - The limit is renewed every week.\n* `MONTHLY` - The limit is renewed every calendar month.\n* `QUARTERLY` - The limit is renewed every calendar quarter.\n* `ANNUAL` - The limit is renewed every year.\n* `TOTAL` - The limit is never renewed. Once spent, no further transactions are allowed under this limit.\n"
+          },
+          "limit": {
+            "type": "object",
+            "description": "The monetary cap for this additional limit.",
+            "properties": {
+              "value": {
+                "type": "number",
+                "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+              },
+              "currency": {
+                "type": "string",
+                "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+              }
+            }
+          },
+          "maxTransactionCount": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 999999999,
+            "description": "Maximum number of transactions allowed under this additional limit within its renewal period. Null if no transaction-count cap is configured."
+          },
+          "scope": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The scope restriction of this additional limit. Null when no scope is defined (`categories` and `acceptanceMethods` empty, `atmWithdrawal` false, `currency` null).",
+            "properties": {
+              "categories": {
+                "type": "array",
+                "description": "Merchant category types this limit applies to. Empty when no category restriction is set.",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "ADVERTISING_AND_MARKETING",
+                    "COMPUTING_AND_SOFTWARE",
+                    "EDUCATION_AND_TRAINING",
+                    "ELECTRONICS_AND_IT_EQUIPMENT",
+                    "ENTERTAINMENT_AND_WELLNESS",
+                    "FOOD_AND_DRINKS",
+                    "GIFTS_AND_VOUCHERS",
+                    "HEALTHCARE",
+                    "MATERIALS_AND_PACKAGING",
+                    "OFFICE_SUPPLIES_AND_EQUIPMENT",
+                    "SERVICES",
+                    "TRAVEL_AND_ACCOMMODATION",
+                    "OTHER"
+                  ]
+                }
+              },
+              "acceptanceMethods": {
+                "type": "array",
+                "description": "The card acceptance methods this limit applies to. Empty when no acceptance-method restriction is set.",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "ONLINE",
+                    "MOBILE_WALLET",
+                    "MANUAL_ENTRY",
+                    "CONTACTLESS",
+                    "CHIP_DIP",
+                    "NOT_AVAILABLE",
+                    "MAGNETIC_STRIPE",
+                    "OTHER"
+                  ]
+                }
+              },
+              "atmWithdrawal": {
+                "type": "boolean",
+                "description": "When `true`, this additional limit applies to ATM withdrawal transactions."
+              },
+              "currency": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 4217 currency code this limit is scoped to, e.g. `PLN`. Null when no currency scope is defined."
+              }
+            }
+          },
+          "balanceInfo": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Spending balance information for this additional limit. Null when no balance record exists.",
+            "properties": {
+              "balance": {
+                "type": "object",
+                "description": "Amount spent under this additional limit in the current renewal period.",
+                "properties": {
+                  "value": {
+                    "type": "number",
+                    "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+                  },
+                  "currency": {
+                    "type": "string",
+                    "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+                  }
+                }
+              },
+              "availableLimit": {
+                "type": "object",
+                "description": "Remaining amount available under this additional limit in the current renewal period.",
+                "properties": {
+                  "value": {
+                    "type": "number",
+                    "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+                  },
+                  "currency": {
+                    "type": "string",
+                    "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+                  }
+                }
+              },
+              "limitRenewDate": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date",
+                "description": "Date when this additional limit's balance will next be renewed, e.g. `2026-06-01`. Null for `TOTAL` frequency limits."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

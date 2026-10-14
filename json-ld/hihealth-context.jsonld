@@ -1,0 +1,1362 @@
+{
+  "@context": {
+    "@vocab": "https://getpliant.com/schema#",
+    "schema": "https://schema.org/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "hihealth": "https://getpliant.com/schema#",
+    "Organization": "hihealth:Organization",
+    "organizationId": {
+      "@id": "hihealth:organizationId",
+      "@type": "xsd:string"
+    },
+    "name": {
+      "@id": "hihealth:name",
+      "@type": "xsd:string"
+    },
+    "status": {
+      "@id": "hihealth:status",
+      "@type": "xsd:string"
+    },
+    "vatId": {
+      "@id": "hihealth:vatId",
+      "@type": "xsd:string"
+    },
+    "cardAccounts": {
+      "@id": "hihealth:cardAccounts",
+      "@container": "@list"
+    },
+    "paymentProgramId": {
+      "@id": "hihealth:paymentProgramId",
+      "@type": "xsd:string"
+    },
+    "Error": "hihealth:Error",
+    "errorCode": {
+      "@id": "hihealth:errorCode",
+      "@type": "xsd:string"
+    },
+    "exceptionId": {
+      "@id": "hihealth:exceptionId",
+      "@type": "xsd:string"
+    },
+    "message": {
+      "@id": "hihealth:message",
+      "@type": "xsd:string"
+    },
+    "OrganizationDetail": "hihealth:OrganizationDetail",
+    "syncType": {
+      "@id": "hihealth:syncType",
+      "@type": "xsd:string"
+    },
+    "integrationType": {
+      "@id": "hihealth:integrationType",
+      "@type": "xsd:string"
+    },
+    "creditLimit": {
+      "@id": "hihealth:creditLimit"
+    },
+    "availableLimit": {
+      "@id": "hihealth:availableLimit"
+    },
+    "balance": {
+      "@id": "hihealth:balance"
+    },
+    "cardsAccounts": {
+      "@id": "hihealth:cardsAccounts",
+      "@container": "@list"
+    },
+    "tradeName": {
+      "@id": "hihealth:tradeName",
+      "@type": "xsd:string"
+    },
+    "legalForm": {
+      "@id": "hihealth:legalForm",
+      "@type": "xsd:string"
+    },
+    "foundationDate": {
+      "@id": "hihealth:foundationDate",
+      "@type": "xsd:date"
+    },
+    "country": {
+      "@id": "hihealth:country",
+      "@type": "xsd:string"
+    },
+    "accountType": {
+      "@id": "hihealth:accountType",
+      "@type": "xsd:string"
+    },
+    "partnersOrganizationId": {
+      "@id": "hihealth:partnersOrganizationId",
+      "@type": "xsd:string"
+    },
+    "partnerOrganizationId": {
+      "@id": "hihealth:partnerOrganizationId",
+      "@type": "xsd:string"
+    },
+    "paymentFrequency": {
+      "@id": "hihealth:paymentFrequency",
+      "@type": "xsd:string"
+    },
+    "nationalRegisterCourt": {
+      "@id": "hihealth:nationalRegisterCourt",
+      "@type": "xsd:string"
+    },
+    "nationalRegisterId": {
+      "@id": "hihealth:nationalRegisterId",
+      "@type": "xsd:string"
+    },
+    "nationalRegisterType": {
+      "@id": "hihealth:nationalRegisterType",
+      "@type": "xsd:string"
+    },
+    "tradeRegisterNumber": {
+      "@id": "hihealth:tradeRegisterNumber",
+      "@type": "xsd:string"
+    },
+    "billingEmail": {
+      "@id": "hihealth:billingEmail",
+      "@type": "xsd:string"
+    },
+    "billingAddress": {
+      "@id": "hihealth:billingAddress"
+    },
+    "deliveryAddress": {
+      "@id": "hihealth:deliveryAddress"
+    },
+    "processingAccount": {
+      "@id": "hihealth:processingAccount"
+    },
+    "isCompanyNamePrintable": {
+      "@id": "hihealth:isCompanyNamePrintable",
+      "@type": "xsd:boolean"
+    },
+    "eligibleForHybridAccount": {
+      "@id": "hihealth:eligibleForHybridAccount",
+      "@type": "xsd:boolean"
+    },
+    "missingReceiptNotifications": {
+      "@id": "hihealth:missingReceiptNotifications",
+      "@type": "xsd:boolean"
+    },
+    "fxFeePercentage": {
+      "@id": "hihealth:fxFeePercentage",
+      "@type": "xsd:decimal"
+    },
+    "OrganizationRiskDetail": "hihealth:OrganizationRiskDetail",
+    "riskAndCompliance": {
+      "@id": "hihealth:riskAndCompliance"
+    },
+    "documentsLegal": {
+      "@id": "hihealth:documentsLegal",
+      "@type": "xsd:string"
+    },
+    "bankConnectionStatus": {
+      "@id": "hihealth:bankConnectionStatus",
+      "@type": "xsd:string"
+    },
+    "OrganizationBankAccount": "hihealth:OrganizationBankAccount",
+    "bankAccountId": {
+      "@id": "hihealth:bankAccountId",
+      "@type": "xsd:string"
+    },
+    "bankName": {
+      "@id": "hihealth:bankName",
+      "@type": "xsd:string"
+    },
+    "bic": {
+      "@id": "hihealth:bic",
+      "@type": "xsd:string"
+    },
+    "accountNumber": {
+      "@id": "hihealth:accountNumber",
+      "@type": "xsd:string"
+    },
+    "accountNumberType": {
+      "@id": "hihealth:accountNumberType",
+      "@type": "xsd:string"
+    },
+    "currency": {
+      "@id": "hihealth:currency",
+      "@type": "xsd:string"
+    },
+    "transfersAllowed": {
+      "@id": "hihealth:transfersAllowed",
+      "@type": "xsd:string"
+    },
+    "OrganizationCreate": "hihealth:OrganizationCreate",
+    "metadata": {
+      "@id": "hihealth:metadata"
+    },
+    "leadData": {
+      "@id": "hihealth:leadData"
+    },
+    "OrganizationCreateResponse": "hihealth:OrganizationCreateResponse",
+    "id": {
+      "@id": "hihealth:id",
+      "@type": "xsd:string"
+    },
+    "accountGroup": {
+      "@id": "hihealth:accountGroup",
+      "@type": "xsd:string"
+    },
+    "createdAt": {
+      "@id": "hihealth:createdAt",
+      "@type": "xsd:dateTime"
+    },
+    "OrganizationUpdate": "hihealth:OrganizationUpdate",
+    "OrganizationCallback": "hihealth:OrganizationCallback",
+    "OrganizationBalanceCallback": "hihealth:OrganizationBalanceCallback",
+    "OrganizationAuthorizationCallback": "hihealth:OrganizationAuthorizationCallback",
+    "partnerId": {
+      "@id": "hihealth:partnerId",
+      "@type": "xsd:string"
+    },
+    "OrganizationBankConnectionStatusCallback": "hihealth:OrganizationBankConnectionStatusCallback",
+    "statusChange": {
+      "@id": "hihealth:statusChange"
+    },
+    "OrganizationDirectDebitStatusCallback": "hihealth:OrganizationDirectDebitStatusCallback",
+    "OrganizationDocumentCustomerStatusCallback": "hihealth:OrganizationDocumentCustomerStatusCallback",
+    "category": {
+      "@id": "hihealth:category",
+      "@type": "xsd:string"
+    },
+    "OrganizationRepresentativeLegitimationStatusChangedCallback": "hihealth:OrganizationRepresentativeLegitimationStatusChangedCallback",
+    "representativeId": {
+      "@id": "hihealth:representativeId",
+      "@type": "xsd:string"
+    },
+    "OrganizationRepresentativeSubmissionStatusChangedCallback": "hihealth:OrganizationRepresentativeSubmissionStatusChangedCallback",
+    "Event": "hihealth:Event",
+    "eventType": {
+      "@id": "hihealth:eventType",
+      "@type": "xsd:string"
+    },
+    "CardAccount": "hihealth:CardAccount",
+    "purpose": {
+      "@id": "hihealth:purpose",
+      "@type": "xsd:string"
+    },
+    "bankAccountInformation": {
+      "@id": "hihealth:bankAccountInformation",
+      "@container": "@list"
+    },
+    "defaultAccount": {
+      "@id": "hihealth:defaultAccount",
+      "@type": "xsd:boolean"
+    },
+    "paymentDefermentInDays": {
+      "@id": "hihealth:paymentDefermentInDays",
+      "@type": "xsd:integer"
+    },
+    "activatedAt": {
+      "@id": "hihealth:activatedAt",
+      "@type": "xsd:dateTime"
+    },
+    "supersededBy": {
+      "@id": "hihealth:supersededBy",
+      "@type": "xsd:string"
+    },
+    "supersedes": {
+      "@id": "hihealth:supersedes",
+      "@type": "xsd:string"
+    },
+    "supersededAt": {
+      "@id": "hihealth:supersededAt",
+      "@type": "xsd:dateTime"
+    },
+    "benefitCardAccount": {
+      "@id": "hihealth:benefitCardAccount",
+      "@type": "xsd:boolean"
+    },
+    "Payment": "hihealth:Payment",
+    "paymentId": {
+      "@id": "hihealth:paymentId",
+      "@type": "xsd:string"
+    },
+    "cardAccountId": {
+      "@id": "hihealth:cardAccountId",
+      "@type": "xsd:string"
+    },
+    "publicPaymentId": {
+      "@id": "hihealth:publicPaymentId",
+      "@type": "xsd:string"
+    },
+    "type": {
+      "@id": "hihealth:type",
+      "@type": "xsd:string"
+    },
+    "method": {
+      "@id": "hihealth:method",
+      "@type": "xsd:string"
+    },
+    "amount": {
+      "@id": "hihealth:amount"
+    },
+    "Cardholder": "hihealth:Cardholder",
+    "cardholderId": {
+      "@id": "hihealth:cardholderId",
+      "@type": "xsd:string"
+    },
+    "CardholderDetail": "hihealth:CardholderDetail",
+    "salutation": {
+      "@id": "hihealth:salutation",
+      "@type": "xsd:string"
+    },
+    "firstName": {
+      "@id": "hihealth:firstName",
+      "@type": "xsd:string"
+    },
+    "lastName": {
+      "@id": "hihealth:lastName",
+      "@type": "xsd:string"
+    },
+    "email": {
+      "@id": "hihealth:email",
+      "@type": "xsd:string"
+    },
+    "phoneNumber": {
+      "@id": "hihealth:phoneNumber",
+      "@type": "xsd:string"
+    },
+    "language": {
+      "@id": "hihealth:language",
+      "@type": "xsd:string"
+    },
+    "locale": {
+      "@id": "hihealth:locale",
+      "@type": "xsd:string"
+    },
+    "eligibleForPlatformFeeCards": {
+      "@id": "hihealth:eligibleForPlatformFeeCards",
+      "@type": "xsd:boolean"
+    },
+    "isOwner": {
+      "@id": "hihealth:isOwner",
+      "@type": "xsd:boolean"
+    },
+    "isEmbedded": {
+      "@id": "hihealth:isEmbedded",
+      "@type": "xsd:boolean"
+    },
+    "dateOfBirth": {
+      "@id": "hihealth:dateOfBirth",
+      "@type": "xsd:date"
+    },
+    "nationality": {
+      "@id": "hihealth:nationality",
+      "@type": "xsd:string"
+    },
+    "personalAddress": {
+      "@id": "hihealth:personalAddress"
+    },
+    "CardholderUpdate": "hihealth:CardholderUpdate",
+    "CardholderNew": "hihealth:CardholderNew",
+    "tocConfirmedAt": {
+      "@id": "hihealth:tocConfirmedAt",
+      "@type": "xsd:dateTime"
+    },
+    "phoneNumberVerifiedAt": {
+      "@id": "hihealth:phoneNumberVerifiedAt",
+      "@type": "xsd:dateTime"
+    },
+    "CardholderInvite": "hihealth:CardholderInvite",
+    "CardholderOwnerInvite": "hihealth:CardholderOwnerInvite",
+    "CardholderOwner": "hihealth:CardholderOwner",
+    "CardholderCallback": "hihealth:CardholderCallback",
+    "inviteLink": {
+      "@id": "hihealth:inviteLink",
+      "@type": "xsd:string"
+    },
+    "CardholderLegitimationStatusCallback": "hihealth:CardholderLegitimationStatusCallback",
+    "identityVerificationId": {
+      "@id": "hihealth:identityVerificationId",
+      "@type": "xsd:string"
+    },
+    "legitimationStatus": {
+      "@id": "hihealth:legitimationStatus",
+      "@type": "xsd:string"
+    },
+    "Card": "hihealth:Card",
+    "cardId": {
+      "@id": "hihealth:cardId",
+      "@type": "xsd:string"
+    },
+    "cardConfig": {
+      "@id": "hihealth:cardConfig",
+      "@type": "xsd:string"
+    },
+    "platformFee": {
+      "@id": "hihealth:platformFee",
+      "@type": "xsd:boolean"
+    },
+    "cardDesignId": {
+      "@id": "hihealth:cardDesignId",
+      "@type": "xsd:string"
+    },
+    "cardDesignLogoName": {
+      "@id": "hihealth:cardDesignLogoName",
+      "@type": "xsd:string"
+    },
+    "updatedAt": {
+      "@id": "hihealth:updatedAt",
+      "@type": "xsd:dateTime"
+    },
+    "CardDetail": "hihealth:CardDetail",
+    "cardRequestId": {
+      "@id": "hihealth:cardRequestId",
+      "@type": "xsd:string"
+    },
+    "pendingDetails": {
+      "@id": "hihealth:pendingDetails",
+      "@type": "xsd:string"
+    },
+    "label": {
+      "@id": "hihealth:label",
+      "@type": "xsd:string"
+    },
+    "refNum": {
+      "@id": "hihealth:refNum",
+      "@type": "xsd:string"
+    },
+    "issuingDate": {
+      "@id": "hihealth:issuingDate",
+      "@type": "xsd:dateTime"
+    },
+    "expiryDate": {
+      "@id": "hihealth:expiryDate",
+      "@type": "xsd:dateTime"
+    },
+    "limit": {
+      "@id": "hihealth:limit"
+    },
+    "transactionLimit": {
+      "@id": "hihealth:transactionLimit"
+    },
+    "spendingBalance": {
+      "@id": "hihealth:spendingBalance"
+    },
+    "availableBalance": {
+      "@id": "hihealth:availableBalance"
+    },
+    "token": {
+      "@id": "hihealth:token",
+      "@type": "xsd:string"
+    },
+    "cardDesign": {
+      "@id": "hihealth:cardDesign",
+      "@type": "xsd:string"
+    },
+    "productRef": {
+      "@id": "hihealth:productRef",
+      "@type": "xsd:string"
+    },
+    "limitPeriodEnd": {
+      "@id": "hihealth:limitPeriodEnd",
+      "@type": "xsd:dateTime"
+    },
+    "limitRenewDate": {
+      "@id": "hihealth:limitRenewDate",
+      "@type": "xsd:date"
+    },
+    "limitRenewFrequency": {
+      "@id": "hihealth:limitRenewFrequency",
+      "@type": "xsd:string"
+    },
+    "customFirstName": {
+      "@id": "hihealth:customFirstName",
+      "@type": "xsd:string"
+    },
+    "customLastName": {
+      "@id": "hihealth:customLastName",
+      "@type": "xsd:string"
+    },
+    "replacedByCardId": {
+      "@id": "hihealth:replacedByCardId",
+      "@type": "xsd:string"
+    },
+    "replacedCardId": {
+      "@id": "hihealth:replacedCardId",
+      "@type": "xsd:string"
+    },
+    "replacementReason": {
+      "@id": "hihealth:replacementReason",
+      "@type": "xsd:string"
+    },
+    "shippingDate": {
+      "@id": "hihealth:shippingDate",
+      "@type": "xsd:dateTime"
+    },
+    "panAlias": {
+      "@id": "hihealth:panAlias",
+      "@type": "xsd:string"
+    },
+    "validFrom": {
+      "@id": "hihealth:validFrom",
+      "@type": "xsd:date"
+    },
+    "validTo": {
+      "@id": "hihealth:validTo",
+      "@type": "xsd:date"
+    },
+    "validTimezone": {
+      "@id": "hihealth:validTimezone",
+      "@type": "xsd:string"
+    },
+    "maxTransactionCount": {
+      "@id": "hihealth:maxTransactionCount",
+      "@type": "xsd:decimal"
+    },
+    "fundingType": {
+      "@id": "hihealth:fundingType",
+      "@type": "xsd:string"
+    },
+    "clickToPayInfo": {
+      "@id": "hihealth:clickToPayInfo"
+    },
+    "nextLoadDate": {
+      "@id": "hihealth:nextLoadDate",
+      "@type": "xsd:date"
+    },
+    "additionalLimits": {
+      "@id": "hihealth:additionalLimits",
+      "@container": "@list"
+    },
+    "CardDetailBatch": "hihealth:CardDetailBatch",
+    "cardControls": {
+      "@id": "hihealth:cardControls",
+      "@type": "@id"
+    },
+    "customFields": {
+      "@id": "hihealth:customFields",
+      "@container": "@list"
+    },
+    "maskedPan": {
+      "@id": "hihealth:maskedPan",
+      "@type": "xsd:string"
+    },
+    "benefit": {
+      "@id": "hihealth:benefit",
+      "@type": "xsd:boolean"
+    },
+    "copilots": {
+      "@id": "hihealth:copilots"
+    },
+    "CardControls": "hihealth:CardControls",
+    "categories": {
+      "@id": "hihealth:categories"
+    },
+    "merchants": {
+      "@id": "hihealth:merchants"
+    },
+    "dates": {
+      "@id": "hihealth:dates"
+    },
+    "times": {
+      "@id": "hihealth:times"
+    },
+    "locations": {
+      "@id": "hihealth:locations"
+    },
+    "countries": {
+      "@id": "hihealth:countries"
+    },
+    "currencies": {
+      "@id": "hihealth:currencies"
+    },
+    "acceptanceMethods": {
+      "@id": "hihealth:acceptanceMethods"
+    },
+    "CardControlsPropertiesResponse": "hihealth:CardControlsPropertiesResponse",
+    "enabled": {
+      "@id": "hihealth:enabled",
+      "@type": "xsd:boolean"
+    },
+    "editable": {
+      "@id": "hihealth:editable",
+      "@type": "xsd:boolean"
+    },
+    "required": {
+      "@id": "hihealth:required",
+      "@type": "xsd:boolean"
+    },
+    "CardIssueResponse": "hihealth:CardIssueResponse",
+    "monthlyLimit": {
+      "@id": "hihealth:monthlyLimit"
+    },
+    "CardIssueResponseInstant": "hihealth:CardIssueResponseInstant",
+    "teamId": {
+      "@id": "hihealth:teamId",
+      "@type": "xsd:string"
+    },
+    "teamName": {
+      "@id": "hihealth:teamName",
+      "@type": "xsd:string"
+    },
+    "projectId": {
+      "@id": "hihealth:projectId",
+      "@type": "xsd:string"
+    },
+    "projectName": {
+      "@id": "hihealth:projectName",
+      "@type": "xsd:string"
+    },
+    "CardIssueResponsePCI": "hihealth:CardIssueResponsePCI",
+    "sensitiveCardData": {
+      "@id": "hihealth:sensitiveCardData"
+    },
+    "CardReplace": "hihealth:CardReplace",
+    "CardBenefitLoadedCallback": "hihealth:CardBenefitLoadedCallback",
+    "loadAmount": {
+      "@id": "hihealth:loadAmount"
+    },
+    "CardBenefitUnloadedCallback": "hihealth:CardBenefitUnloadedCallback",
+    "unloadAmount": {
+      "@id": "hihealth:unloadAmount"
+    },
+    "CardCallback": "hihealth:CardCallback",
+    "limitChange": {
+      "@id": "hihealth:limitChange"
+    },
+    "isBenefit": {
+      "@id": "hihealth:isBenefit",
+      "@type": "xsd:boolean"
+    },
+    "CardBalanceCallback": "hihealth:CardBalanceCallback",
+    "CardAvailableBalanceChangedCallback": "hihealth:CardAvailableBalanceChangedCallback",
+    "CardExpiredCallback": "hihealth:CardExpiredCallback",
+    "expirationDate": {
+      "@id": "hihealth:expirationDate",
+      "@type": "xsd:dateTime"
+    },
+    "CardStatusChangedCallback": "hihealth:CardStatusChangedCallback",
+    "statusBeforeChange": {
+      "@id": "hihealth:statusBeforeChange",
+      "@type": "xsd:string"
+    },
+    "CardValidityUpdatedCallback": "hihealth:CardValidityUpdatedCallback",
+    "timezone": {
+      "@id": "hihealth:timezone",
+      "@type": "xsd:string"
+    },
+    "CardLimitChangeFailedCallback": "hihealth:CardLimitChangeFailedCallback",
+    "limitChangeFailure": {
+      "@id": "hihealth:limitChangeFailure",
+      "@type": "xsd:string"
+    },
+    "attemptedLimitChange": {
+      "@id": "hihealth:attemptedLimitChange"
+    },
+    "CardClickToPayInfoChangedCallback": "hihealth:CardClickToPayInfoChangedCallback",
+    "CardLimitsChangedCallback": "hihealth:CardLimitsChangedCallback",
+    "CardAccessLinkRequestedCallback": "hihealth:CardAccessLinkRequestedCallback",
+    "accessLink": {
+      "@id": "hihealth:accessLink",
+      "@type": "xsd:string"
+    },
+    "CardReassignedCallback": "hihealth:CardReassignedCallback",
+    "previousCardAccountId": {
+      "@id": "hihealth:previousCardAccountId",
+      "@type": "xsd:string"
+    },
+    "reassignedAt": {
+      "@id": "hihealth:reassignedAt",
+      "@type": "xsd:dateTime"
+    },
+    "CardRequest": "hihealth:CardRequest",
+    "CardRequestCreate": "hihealth:CardRequestCreate",
+    "CardRequestDetail": "hihealth:CardRequestDetail",
+    "validityPeriod": {
+      "@id": "hihealth:validityPeriod",
+      "@type": "xsd:string"
+    },
+    "requestedTransactionLimit": {
+      "@id": "hihealth:requestedTransactionLimit"
+    },
+    "requestedMonthlyLimit": {
+      "@id": "hihealth:requestedMonthlyLimit"
+    },
+    "requestedLimit": {
+      "@id": "hihealth:requestedLimit"
+    },
+    "comment": {
+      "@id": "hihealth:comment",
+      "@type": "xsd:string"
+    },
+    "CardRequestApprove": "hihealth:CardRequestApprove",
+    "CardRequestCallback": "hihealth:CardRequestCallback",
+    "requestedLimitRenewFrequency": {
+      "@id": "hihealth:requestedLimitRenewFrequency",
+      "@type": "xsd:string"
+    },
+    "CardLimitRequest": "hihealth:CardLimitRequest",
+    "cardLimitRequestId": {
+      "@id": "hihealth:cardLimitRequestId",
+      "@type": "xsd:string"
+    },
+    "CardLimitRequestCallback": "hihealth:CardLimitRequestCallback",
+    "CardLimitRequestCallbackApproved": "hihealth:CardLimitRequestCallbackApproved",
+    "approvedLimit": {
+      "@id": "hihealth:approvedLimit"
+    },
+    "approvedLimitRenewFrequency": {
+      "@id": "hihealth:approvedLimitRenewFrequency",
+      "@type": "xsd:string"
+    },
+    "approvedTransactionLimit": {
+      "@id": "hihealth:approvedTransactionLimit"
+    },
+    "CardCopilotCallback": "hihealth:CardCopilotCallback",
+    "Transaction": "hihealth:Transaction",
+    "transactionId": {
+      "@id": "hihealth:transactionId",
+      "@type": "xsd:string"
+    },
+    "partnerSubmissionStatus": {
+      "@id": "hihealth:partnerSubmissionStatus",
+      "@type": "xsd:string"
+    },
+    "billingAmount": {
+      "@id": "hihealth:billingAmount"
+    },
+    "transactionAmount": {
+      "@id": "hihealth:transactionAmount"
+    },
+    "confirmedAt": {
+      "@id": "hihealth:confirmedAt",
+      "@type": "xsd:dateTime"
+    },
+    "TransactionDetailBatch": "hihealth:TransactionDetailBatch",
+    "acceptanceMethod": {
+      "@id": "hihealth:acceptanceMethod",
+      "@type": "@id"
+    },
+    "partnerSubmissionStatusSyncedAt": {
+      "@id": "hihealth:partnerSubmissionStatusSyncedAt",
+      "@type": "xsd:dateTime"
+    },
+    "partnerSubmissionStatusTempLockedAt": {
+      "@id": "hihealth:partnerSubmissionStatusTempLockedAt",
+      "@type": "xsd:dateTime"
+    },
+    "partnerSubmissionStatusLockedAt": {
+      "@id": "hihealth:partnerSubmissionStatusLockedAt",
+      "@type": "xsd:dateTime"
+    },
+    "transactionCountry": {
+      "@id": "hihealth:transactionCountry",
+      "@type": "xsd:string"
+    },
+    "transactionLocalTime": {
+      "@id": "hihealth:transactionLocalTime",
+      "@type": "xsd:dateTime"
+    },
+    "authorizedAt": {
+      "@id": "hihealth:authorizedAt",
+      "@type": "xsd:dateTime"
+    },
+    "bookedAt": {
+      "@id": "hihealth:bookedAt",
+      "@type": "xsd:date"
+    },
+    "reversedAt": {
+      "@id": "hihealth:reversedAt",
+      "@type": "xsd:dateTime"
+    },
+    "declineReason": {
+      "@id": "hihealth:declineReason"
+    },
+    "linkedTransactionId": {
+      "@id": "hihealth:linkedTransactionId",
+      "@type": "xsd:string"
+    },
+    "receiptCount": {
+      "@id": "hihealth:receiptCount",
+      "@type": "xsd:integer"
+    },
+    "receiptIds": {
+      "@id": "hihealth:receiptIds",
+      "@container": "@list"
+    },
+    "receiptUploadEnabled": {
+      "@id": "hihealth:receiptUploadEnabled",
+      "@type": "xsd:boolean"
+    },
+    "merchantData": {
+      "@id": "hihealth:merchantData"
+    },
+    "merchantRawData": {
+      "@id": "hihealth:merchantRawData"
+    },
+    "authCode": {
+      "@id": "hihealth:authCode",
+      "@type": "xsd:string"
+    },
+    "paymentDate": {
+      "@id": "hihealth:paymentDate",
+      "@type": "xsd:date"
+    },
+    "paymentReference": {
+      "@id": "hihealth:paymentReference",
+      "@type": "xsd:string"
+    },
+    "wallet": {
+      "@id": "hihealth:wallet",
+      "@type": "xsd:string"
+    },
+    "fxFee": {
+      "@id": "hihealth:fxFee"
+    },
+    "personal": {
+      "@id": "hihealth:personal",
+      "@type": "xsd:boolean"
+    },
+    "acquirerReferenceNumber": {
+      "@id": "hihealth:acquirerReferenceNumber",
+      "@type": "xsd:string"
+    },
+    "TransactionAcceptanceMethod": "hihealth:TransactionAcceptanceMethod",
+    "TransactionCallback": "hihealth:TransactionCallback",
+    "declineReasonType": {
+      "@id": "hihealth:declineReasonType",
+      "@type": "xsd:string"
+    },
+    "TransactionDetail": "hihealth:TransactionDetail",
+    "TransactionMerchantCallback": "hihealth:TransactionMerchantCallback",
+    "merchantId": {
+      "@id": "hihealth:merchantId",
+      "@type": "xsd:string"
+    },
+    "TransactionAuthCodeCallback": "hihealth:TransactionAuthCodeCallback",
+    "TransactionAuthorizationConfirmationCallback": "hihealth:TransactionAuthorizationConfirmationCallback",
+    "card": {
+      "@id": "hihealth:card"
+    },
+    "transactionDate": {
+      "@id": "hihealth:transactionDate",
+      "@type": "xsd:dateTime"
+    },
+    "confirmationDate": {
+      "@id": "hihealth:confirmationDate",
+      "@type": "xsd:dateTime"
+    },
+    "TransactionCommentUpdatedCallback": "hihealth:TransactionCommentUpdatedCallback",
+    "commentBefore": {
+      "@id": "hihealth:commentBefore",
+      "@type": "xsd:string"
+    },
+    "commentAfter": {
+      "@id": "hihealth:commentAfter",
+      "@type": "xsd:string"
+    },
+    "TransactionReceiptUploadEnabledUpdatedCallback": "hihealth:TransactionReceiptUploadEnabledUpdatedCallback",
+    "TransactionStatusChangedCallback": "hihealth:TransactionStatusChangedCallback",
+    "Receipt": "hihealth:Receipt",
+    "receiptId": {
+      "@id": "hihealth:receiptId",
+      "@type": "xsd:string"
+    },
+    "ReceiptDetail": "hihealth:ReceiptDetail",
+    "filename": {
+      "@id": "hihealth:filename",
+      "@type": "xsd:string"
+    },
+    "mimeType": {
+      "@id": "hihealth:mimeType",
+      "@type": "xsd:string"
+    },
+    "receiptNumber": {
+      "@id": "hihealth:receiptNumber",
+      "@type": "xsd:string"
+    },
+    "receiptDate": {
+      "@id": "hihealth:receiptDate",
+      "@type": "xsd:date"
+    },
+    "ReceiptCallback": "hihealth:ReceiptCallback",
+    "AccountingTransactions": "hihealth:AccountingTransactions",
+    "supplier": {
+      "@id": "hihealth:supplier"
+    },
+    "exportStatus": {
+      "@id": "hihealth:exportStatus",
+      "@type": "xsd:string"
+    },
+    "accountingTransactions": {
+      "@id": "hihealth:accountingTransactions",
+      "@container": "@list"
+    },
+    "AccountingTransactionCallback": "hihealth:AccountingTransactionCallback",
+    "Project": "hihealth:Project",
+    "costUnit": {
+      "@id": "hihealth:costUnit",
+      "@type": "xsd:string"
+    },
+    "isPrivate": {
+      "@id": "hihealth:isPrivate",
+      "@type": "xsd:boolean"
+    },
+    "teamIds": {
+      "@id": "hihealth:teamIds",
+      "@container": "@list"
+    },
+    "ProjectMinimalResponse": "hihealth:ProjectMinimalResponse",
+    "ProjectMinimalRequest": "hihealth:ProjectMinimalRequest",
+    "ProjectTeamAssignment": "hihealth:ProjectTeamAssignment",
+    "Team": "hihealth:Team",
+    "costCenter": {
+      "@id": "hihealth:costCenter",
+      "@type": "xsd:string"
+    },
+    "cardholders": {
+      "@id": "hihealth:cardholders"
+    },
+    "TeamId": "hihealth:TeamId",
+    "TeamMinimal": "hihealth:TeamMinimal",
+    "CashbackAmountCallback": "hihealth:CashbackAmountCallback",
+    "cashbackValues": {
+      "@id": "hihealth:cashbackValues"
+    },
+    "PaymentDetail": "hihealth:PaymentDetail",
+    "cutoffDate": {
+      "@id": "hihealth:cutoffDate",
+      "@type": "xsd:date"
+    },
+    "plannedPaymentDate": {
+      "@id": "hihealth:plannedPaymentDate",
+      "@type": "xsd:date"
+    },
+    "actualPaymentDate": {
+      "@id": "hihealth:actualPaymentDate",
+      "@type": "xsd:date"
+    },
+    "relatedTransactions": {
+      "@id": "hihealth:relatedTransactions",
+      "@container": "@list"
+    },
+    "billId": {
+      "@id": "hihealth:billId",
+      "@type": "xsd:string"
+    },
+    "PaymentCallback": "hihealth:PaymentCallback",
+    "PaymentReadyCallback": "hihealth:PaymentReadyCallback",
+    "organizationid": {
+      "@id": "hihealth:organizationid",
+      "@type": "xsd:string"
+    },
+    "Statement": "hihealth:Statement",
+    "statementId": {
+      "@id": "hihealth:statementId",
+      "@type": "xsd:string"
+    },
+    "statementCreatedAt": {
+      "@id": "hihealth:statementCreatedAt",
+      "@type": "xsd:dateTime"
+    },
+    "isClosed": {
+      "@id": "hihealth:isClosed",
+      "@type": "xsd:boolean"
+    },
+    "StatementDetail": "hihealth:StatementDetail",
+    "statementPeriodStart": {
+      "@id": "hihealth:statementPeriodStart",
+      "@type": "xsd:dateTime"
+    },
+    "statementPeriodEnd": {
+      "@id": "hihealth:statementPeriodEnd",
+      "@type": "xsd:dateTime"
+    },
+    "openingBalance": {
+      "@id": "hihealth:openingBalance"
+    },
+    "closingBalance": {
+      "@id": "hihealth:closingBalance"
+    },
+    "totalTransactionAmount": {
+      "@id": "hihealth:totalTransactionAmount"
+    },
+    "totalPaymentAmount": {
+      "@id": "hihealth:totalPaymentAmount"
+    },
+    "relatedAccountEntries": {
+      "@id": "hihealth:relatedAccountEntries",
+      "@container": "@list"
+    },
+    "StatementCallbackUpdated": "hihealth:StatementCallbackUpdated",
+    "StatementCallbackCSVGenerated": "hihealth:StatementCallbackCSVGenerated",
+    "statementFileExportId": {
+      "@id": "hihealth:statementFileExportId",
+      "@type": "xsd:string"
+    },
+    "statementFileUrl": {
+      "@id": "hihealth:statementFileUrl",
+      "@type": "@id"
+    },
+    "AccountEntryCreationCallback": "hihealth:AccountEntryCreationCallback",
+    "accountEntryId": {
+      "@id": "hihealth:accountEntryId",
+      "@type": "xsd:string"
+    },
+    "index": {
+      "@id": "hihealth:index",
+      "@type": "xsd:integer"
+    },
+    "bookingDate": {
+      "@id": "hihealth:bookingDate",
+      "@type": "xsd:date"
+    },
+    "balanceAfter": {
+      "@id": "hihealth:balanceAfter"
+    },
+    "transactionType": {
+      "@id": "hihealth:transactionType",
+      "@type": "xsd:string"
+    },
+    "billPaymentType": {
+      "@id": "hihealth:billPaymentType",
+      "@type": "xsd:string"
+    },
+    "billPaymentId": {
+      "@id": "hihealth:billPaymentId",
+      "@type": "xsd:string"
+    },
+    "Beneficiary": "hihealth:Beneficiary",
+    "legalName": {
+      "@id": "hihealth:legalName",
+      "@type": "xsd:string"
+    },
+    "displayName": {
+      "@id": "hihealth:displayName",
+      "@type": "xsd:string"
+    },
+    "street": {
+      "@id": "hihealth:street",
+      "@type": "xsd:string"
+    },
+    "postalCode": {
+      "@id": "hihealth:postalCode",
+      "@type": "xsd:string"
+    },
+    "city": {
+      "@id": "hihealth:city",
+      "@type": "xsd:string"
+    },
+    "region": {
+      "@id": "hihealth:region",
+      "@type": "xsd:string"
+    },
+    "active": {
+      "@id": "hihealth:active",
+      "@type": "xsd:boolean"
+    },
+    "BeneficiaryPaymentDetail": "hihealth:BeneficiaryPaymentDetail",
+    "bankCountry": {
+      "@id": "hihealth:bankCountry",
+      "@type": "xsd:string"
+    },
+    "bankAccountCurrency": {
+      "@id": "hihealth:bankAccountCurrency",
+      "@type": "xsd:string"
+    },
+    "bankAccountType": {
+      "@id": "hihealth:bankAccountType",
+      "@type": "xsd:string"
+    },
+    "accountDetail": {
+      "@id": "hihealth:accountDetail",
+      "@type": "@id"
+    },
+    "AccountDetail": "hihealth:AccountDetail",
+    "accountHolderName": {
+      "@id": "hihealth:accountHolderName",
+      "@type": "xsd:string"
+    },
+    "iban": {
+      "@id": "hihealth:iban",
+      "@type": "xsd:string"
+    },
+    "sortCode": {
+      "@id": "hihealth:sortCode",
+      "@type": "xsd:string"
+    },
+    "BeneficiaryCallback": "hihealth:BeneficiaryCallback",
+    "beneficiaryId": {
+      "@id": "hihealth:beneficiaryId",
+      "@type": "xsd:string"
+    },
+    "ExternalTransfer": "hihealth:ExternalTransfer",
+    "memberId": {
+      "@id": "hihealth:memberId",
+      "@type": "xsd:string"
+    },
+    "beneficiaryPaymentDetailId": {
+      "@id": "hihealth:beneficiaryPaymentDetailId",
+      "@type": "xsd:string"
+    },
+    "sourceCardAccountId": {
+      "@id": "hihealth:sourceCardAccountId",
+      "@type": "xsd:string"
+    },
+    "transferAmount": {
+      "@id": "hihealth:transferAmount"
+    },
+    "transferMethod": {
+      "@id": "hihealth:transferMethod",
+      "@type": "xsd:string"
+    },
+    "invoiceNumber": {
+      "@id": "hihealth:invoiceNumber",
+      "@type": "xsd:string"
+    },
+    "invoiceDate": {
+      "@id": "hihealth:invoiceDate",
+      "@type": "xsd:date"
+    },
+    "dueDate": {
+      "@id": "hihealth:dueDate",
+      "@type": "xsd:date"
+    },
+    "transferTime": {
+      "@id": "hihealth:transferTime",
+      "@type": "xsd:dateTime"
+    },
+    "approvedAt": {
+      "@id": "hihealth:approvedAt",
+      "@type": "xsd:dateTime"
+    },
+    "vop": {
+      "@id": "hihealth:vop"
+    },
+    "ExternalTransferCreateRequest": "hihealth:ExternalTransferCreateRequest",
+    "vopId": {
+      "@id": "hihealth:vopId",
+      "@type": "xsd:string"
+    },
+    "ExternalTransferUpdateRequest": "hihealth:ExternalTransferUpdateRequest",
+    "ExternalTransferStatusUpdateRequest": "hihealth:ExternalTransferStatusUpdateRequest",
+    "ExternalTransferCallback": "hihealth:ExternalTransferCallback",
+    "TokenizationDetails": "hihealth:TokenizationDetails",
+    "tokenizationId": {
+      "@id": "hihealth:tokenizationId",
+      "@type": "xsd:string"
+    },
+    "tokenExpirationDate": {
+      "@id": "hihealth:tokenExpirationDate",
+      "@type": "xsd:date"
+    },
+    "deviceId": {
+      "@id": "hihealth:deviceId",
+      "@type": "xsd:string"
+    },
+    "deviceName": {
+      "@id": "hihealth:deviceName",
+      "@type": "xsd:string"
+    },
+    "provisioningStatus": {
+      "@id": "hihealth:provisioningStatus",
+      "@type": "xsd:string"
+    },
+    "tokenStatus": {
+      "@id": "hihealth:tokenStatus",
+      "@type": "xsd:string"
+    },
+    "provisioningStartedAt": {
+      "@id": "hihealth:provisioningStartedAt",
+      "@type": "xsd:dateTime"
+    },
+    "provisioningCompletedAt": {
+      "@id": "hihealth:provisioningCompletedAt",
+      "@type": "xsd:dateTime"
+    },
+    "provisioningDeletedAt": {
+      "@id": "hihealth:provisioningDeletedAt",
+      "@type": "xsd:dateTime"
+    },
+    "tokenId": {
+      "@id": "hihealth:tokenId",
+      "@type": "xsd:string"
+    },
+    "TokenizationOTPCallback": "hihealth:TokenizationOTPCallback",
+    "otp": {
+      "@id": "hihealth:otp",
+      "@type": "xsd:string"
+    },
+    "activationMethod": {
+      "@id": "hihealth:activationMethod",
+      "@type": "xsd:string"
+    },
+    "TokenizationStatusCallback": "hihealth:TokenizationStatusCallback",
+    "PartnerSigningJwks": "hihealth:PartnerSigningJwks",
+    "keys": {
+      "@id": "hihealth:keys",
+      "@container": "@list"
+    },
+    "PaymentProgram": "hihealth:PaymentProgram",
+    "integrationModel": {
+      "@id": "hihealth:integrationModel",
+      "@type": "xsd:string"
+    },
+    "allowedCountries": {
+      "@id": "hihealth:allowedCountries",
+      "@container": "@list"
+    },
+    "defaultCountry": {
+      "@id": "hihealth:defaultCountry",
+      "@type": "xsd:string"
+    },
+    "allowedCurrencies": {
+      "@id": "hihealth:allowedCurrencies",
+      "@container": "@list"
+    },
+    "defaultCurrency": {
+      "@id": "hihealth:defaultCurrency",
+      "@type": "xsd:string"
+    },
+    "Subscriptions": "hihealth:Subscriptions",
+    "callbackUrl": {
+      "@id": "hihealth:callbackUrl",
+      "@type": "xsd:string"
+    },
+    "OnboardingSubmissionStatusResponse": "hihealth:OnboardingSubmissionStatusResponse",
+    "submissionId": {
+      "@id": "hihealth:submissionId",
+      "@type": "xsd:string"
+    },
+    "decisionResult": {
+      "@id": "hihealth:decisionResult",
+      "@type": "@id"
+    },
+    "OnboardingSubmissionCreateRequest": "hihealth:OnboardingSubmissionCreateRequest",
+    "OnboardingSubmissionDecisionResult": "hihealth:OnboardingSubmissionDecisionResult",
+    "decidedAt": {
+      "@id": "hihealth:decidedAt",
+      "@type": "xsd:dateTime"
+    },
+    "rulesFailed": {
+      "@id": "hihealth:rulesFailed",
+      "@container": "@list"
+    },
+    "OnboardingSubmissionPayloadResponse": "hihealth:OnboardingSubmissionPayloadResponse",
+    "payload": {
+      "@id": "hihealth:payload",
+      "@type": "@id"
+    },
+    "OnboardingSubmissionPayload": "hihealth:OnboardingSubmissionPayload",
+    "entity": {
+      "@id": "hihealth:entity"
+    },
+    "productPlan": {
+      "@id": "hihealth:productPlan"
+    },
+    "legalConsents": {
+      "@id": "hihealth:legalConsents",
+      "@container": "@list"
+    },
+    "authorizedSignatories": {
+      "@id": "hihealth:authorizedSignatories",
+      "@container": "@list"
+    },
+    "OnboardingSubmissionValidationResponse": "hihealth:OnboardingSubmissionValidationResponse",
+    "complete": {
+      "@id": "hihealth:complete",
+      "@type": "xsd:boolean"
+    },
+    "warnings": {
+      "@id": "hihealth:warnings",
+      "@container": "@list"
+    },
+    "requiredPaths": {
+      "@id": "hihealth:requiredPaths",
+      "@container": "@list"
+    },
+    "OnboardingSubmissionSubmitAccepted": "hihealth:OnboardingSubmissionSubmitAccepted",
+    "OnboardingSubmissionCallbackPayload": "hihealth:OnboardingSubmissionCallbackPayload",
+    "onboardingSubmissionId": {
+      "@id": "hihealth:onboardingSubmissionId",
+      "@type": "xsd:string"
+    },
+    "detailedStatus": {
+      "@id": "hihealth:detailedStatus",
+      "@type": "xsd:string"
+    },
+    "OnboardingSubmissionCreateAndSubmitRequest": "hihealth:OnboardingSubmissionCreateAndSubmitRequest",
+    "submission": {
+      "@id": "hihealth:submission"
+    },
+    "VopVerification": "hihealth:VopVerification",
+    "verificationId": {
+      "@id": "hihealth:verificationId",
+      "@type": "xsd:string"
+    },
+    "request": {
+      "@id": "hihealth:request"
+    },
+    "result": {
+      "@id": "hihealth:result"
+    },
+    "activeUntil": {
+      "@id": "hihealth:activeUntil",
+      "@type": "xsd:dateTime"
+    },
+    "VopVerificationRequest": "hihealth:VopVerificationRequest",
+    "accountHolder": {
+      "@id": "hihealth:accountHolder",
+      "@type": "xsd:string"
+    },
+    "AccessLink": "hihealth:AccessLink",
+    "accessLinkId": {
+      "@id": "hihealth:accessLinkId",
+      "@type": "xsd:string"
+    },
+    "issuedBy": {
+      "@id": "hihealth:issuedBy",
+      "@type": "xsd:string"
+    },
+    "revokedAt": {
+      "@id": "hihealth:revokedAt",
+      "@type": "xsd:dateTime"
+    },
+    "grants": {
+      "@id": "hihealth:grants",
+      "@container": "@list"
+    },
+    "AccessLinkCreate": "hihealth:AccessLinkCreate",
+    "AccessLinkGrant": "hihealth:AccessLinkGrant",
+    "linkType": {
+      "@id": "hihealth:linkType",
+      "@type": "xsd:string"
+    },
+    "resourceType": {
+      "@id": "hihealth:resourceType",
+      "@type": "xsd:string"
+    },
+    "resourceId": {
+      "@id": "hihealth:resourceId",
+      "@type": "xsd:string"
+    },
+    "scope": {
+      "@id": "hihealth:scope",
+      "@container": "@list"
+    },
+    "expiresAt": {
+      "@id": "hihealth:expiresAt",
+      "@type": "xsd:dateTime"
+    },
+    "maxUseCount": {
+      "@id": "hihealth:maxUseCount",
+      "@type": "xsd:integer"
+    },
+    "usedCount": {
+      "@id": "hihealth:usedCount",
+      "@type": "xsd:integer"
+    }
+  },
+  "@type": "schema:Dataset",
+  "schema:name": "hi.health API JSON-LD context",
+  "schema:description": "A JSON-LD @context for the objects hi.health's own API contract declares: one class per component schema, one property per declared field, typed from the contract. Derived by script (derive-json-ld.py, 2026-10-14) from openapi/hihealth-pliant-customer-api-openapi.yml, openapi/hihealth-pliant-partner-api-openapi.yml.",
+  "dcterms:created": "2026-10-14",
+  "dcterms:source": [
+    "openapi/hihealth-pliant-customer-api-openapi.yml",
+    "openapi/hihealth-pliant-partner-api-openapi.yml"
+  ]
+}

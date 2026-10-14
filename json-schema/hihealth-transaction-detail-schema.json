@@ -1,0 +1,458 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/hihealth/main/json-schema/hihealth-transaction-detail-schema.json",
+  "title": "TransactionDetail",
+  "x-generated": "2026-10-14",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/TransactionDetail",
+  "type": "object",
+  "properties": {
+    "transactionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique ID of the transaction."
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique ID of the organization to which this transaction belongs to."
+    },
+    "cardholderId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique ID of the [cardholder](/docs/cardholder-entity) to which this transaction belongs to."
+    },
+    "cardId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique ID of the card to which this transaction belongs to."
+    },
+    "status": {
+      "type": "string",
+      "description": "The status of the transaction.",
+      "enum": [
+        "DECLINED",
+        "PENDING",
+        "REVERSED",
+        "CONFIRMED",
+        "BOOKED"
+      ]
+    },
+    "type": {
+      "type": "string",
+      "description": "The type of the transaction.",
+      "enum": [
+        "PURCHASE",
+        "CASH_WITHDRAWAL",
+        "REFUND",
+        "CHARGEBACK",
+        "RECHARGE",
+        "STATUS_INQUIRY"
+      ]
+    },
+    "partnerSubmissionStatus": {
+      "type": "string",
+      "enum": [
+        "NOT_SYNCED",
+        "SYNCED",
+        "TEMP_LOCKED",
+        "LOCKED"
+      ],
+      "description": "This status can be driven by the partner to mark transactions on Pliant-side as consumed by the partner. `TEMP_LOCKED` makes transaction immutable for cardholders within Pliant apps. `LOCKED` makes them immutable for all users. `TEMP_LOCKED` can be changed to `SYNCED`. `LOCKED` is the final state that cannot be modified anymore"
+    },
+    "partnerSubmissionStatusSyncedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "The date-time the `partnerSubmissionStatus` was changed to `SYNCED`."
+    },
+    "partnerSubmissionStatusTempLockedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "The date-time the `partnerSubmissionStatus` was changed to `TEMP_LOCKED`."
+    },
+    "partnerSubmissionStatusLockedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "The date-time the `partnerSubmissionStatus` was changed to `LOCKED`."
+    },
+    "category": {
+      "type": "string",
+      "description": "The category of the transaction. This groups together similar merchants into Pliant-defined categories.",
+      "enum": [
+        "ADVERTISING_AND_MARKETING",
+        "COMPUTING_AND_SOFTWARE",
+        "EDUCATION_AND_TRAINING",
+        "ELECTRONICS_AND_IT_EQUIPMENT",
+        "ENTERTAINMENT_AND_WELLNESS",
+        "FOOD_AND_DRINKS",
+        "GIFTS_AND_VOUCHERS",
+        "MATERIALS_AND_PACKAGING",
+        "OFFICE_SUPPLIES_AND_EQUIPMENT",
+        "SERVICES",
+        "TRAVEL_AND_ACCOMMODATION",
+        "HEALTHCARE",
+        "OTHER"
+      ]
+    },
+    "billingAmount": {
+      "type": "object",
+      "description": "The amount that was billed to the cardholder, in the currency of the card account.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the amount, converted to minor units of the currency. E.g. 1 EUR is 100 cents, thus the value is 100."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the amount, in ISO 4217 format. E.g. `EUR` for Euro."
+        }
+      }
+    },
+    "transactionAmount": {
+      "type": "object",
+      "description": "The amount that was paid to the merchant via this transaction, in the local currency of the merchant.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the amount, converted to minor units of the currency. E.g. 1 EUR is 100 cents, thus the value is 100."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the amount, in ISO 4217 format. E.g. `EUR` for Euro."
+        }
+      }
+    },
+    "transactionCountry": {
+      "type": "string",
+      "description": "ISO 3166-1 alpha-3 code of the country the transaction was made it, e.g. `DEU` for Germany or `NLD` for Netherlands. You can find a list of valid country code on [Wikipedia](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3).",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "transactionLocalTime": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "The date-time the transaction was made in the local time of the merchant."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date-time the transaction was first recognized by Pliant, e.g. `2023-09-15T11:55:34.527552Z`."
+    },
+    "authorizedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "The date-time this transaction was authorized by the card network, e.g. `2023-09-15T11:55:34.527552Z`. Can be null in cases of not successful transactions, like a declined one."
+    },
+    "confirmedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "The date-time this transaction was confirmed by the card network, e.g. `2023-09-19T07:24:52.707296Z`. Value is null, until the transaction is confirmed."
+    },
+    "bookedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "The date this transaction was booked by Pliant against the internal bank account of the organization, e.g. `2023-09-19`. Value is null, until the transaction is booked."
+    },
+    "reversedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "The date-time this transaction was reversed by the card network, e.g. `2023-09-15T11:55:34.527552Z`. Value is only filled, if the transaction is reversed."
+    },
+    "declineReason": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Filled, if the transaction was declined. The decline reason `type`, together with `title` and `description` in all supported languages. E.g.:\n```\n{\n  \"type\": \"LOCKED_CARD\",\n  \"title\": {\n    \"en\": \"Card locked\",\n  },\n  \"description\": {\n    \"en\": \"The card is locked. You can unlock the card in the Wallet section of the cardholder app.\",\n  }\n}\n```\nIf the transaction status is anything else but `DECLINED` the object `declineReason` returns `NULL`\n",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/declineReasonType"
+        },
+        "title": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "description": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "linkedTransactionId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Optional reference to any original transaction, used for recharges, chargebacks and chargeback reversals."
+    },
+    "receiptCount": {
+      "type": "integer",
+      "description": "Number of uploaded receipts to this transaction.",
+      "minLength": 0
+    },
+    "receiptIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "The receipts attached to this transaction, if any. Otherwise, the array is empty."
+    },
+    "receiptUploadEnabled": {
+      "type": "boolean",
+      "description": "This field describes if the transaction is waiting for a receipt, or if no receipt is expected for this transaction. If set to `true` its possible to upload receipts to the transaction, if set to `false` it is not possible to upload receipts to the transaction."
+    },
+    "comment": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "A cardholder-defined comment for this transaction."
+    },
+    "merchantData": {
+      "type": "object",
+      "description": "Pliant's merchant data. If the merchant is not known to Pliant, the object is `null`.",
+      "properties": {
+        "pliantMerchantId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Pliant's merchant ID (can be specific for each organization)."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display merchant name that can be used to show additionally next to the raw merchant description."
+        },
+        "logoPath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "URL to the logo of the merchant, if there is any."
+        }
+      }
+    },
+    "merchantRawData": {
+      "type": "object",
+      "description": "Raw merchant data as received from the card network, thus the quality of those fields differ greatly between merchants. We do not control the information provided here.",
+      "properties": {
+        "mcc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The merchant category code (MCC) is a four-digit number assigned to a business by an acquiring bank or institution. The MCC is used to classify the business by the type of goods or services it provides."
+        },
+        "mccDesc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The merchant category code (MCC) description is a short description of the MCC."
+        },
+        "merchantStreet": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The street of the merchant."
+        },
+        "merchantCity": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The city of the merchant."
+        },
+        "merchantRegion": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The region of the merchant."
+        },
+        "merchantPostcode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The postcode of the merchant."
+        },
+        "merchantCountry": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The country of the merchant, in ISO 3166-1 alpha-3 format.",
+          "minLength": 3,
+          "maxLength": 3
+        },
+        "merchantPhone": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The phone number of the merchant."
+        },
+        "merchantUrl": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The URL of the merchant."
+        },
+        "merchantNameOther": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The name of the merchant in the local language."
+        },
+        "merchantLegalName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The legal name of the merchant."
+        },
+        "merchantTaxId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The tax ID of the merchant."
+        },
+        "merchantContact": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The contact information of the merchant."
+        },
+        "merchantTerminalId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The terminal ID of the merchant used to make this transaction."
+        },
+        "descriptionAuthorization": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Authorization message by the merchant."
+        },
+        "descriptionConfirmation": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Confirmation message by the merchant."
+        }
+      }
+    },
+    "authCode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Authorization code used for this transaction."
+    },
+    "paymentDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "The date on which the outstanding amount of this transaction was paid back to Pliant. It basically is the date the bank settlement was received by Pliant. This field is only filled after the next payment frequency cycle of this organization."
+    },
+    "paymentReference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "The reference to the payment itself. Check the [payment API](getpaymentsdetail) to get details about the payment. This field is only filled after the next payment frequency cycle of this organization."
+    },
+    "wallet": {
+      "type": "string",
+      "description": "If the transaction was made using a mobile wallet (`APPLE` or `ANDROID`), the respective wallet type is returned. Otherwise, the field is `OTHER`.",
+      "enum": [
+        "APPLE",
+        "ANDROID",
+        "OTHER"
+      ]
+    },
+    "fxFee": {
+      "type": "object",
+      "description": "The foreign exchange fee that was charged for this transaction, if any.",
+      "properties": {
+        "fxFeePercentage": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The per-organization fee (as a percentage of the transaction amount) that is charged for foreign exchange transactions. This value is specific to this organization. Example: `2.1`.",
+          "format": "float",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "fxFeeAmount": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "The specific amount of the foreign exchange fee that was charged for this transaction. Example: `0.21 EUR`.",
+          "properties": {
+            "value": {
+              "type": "number",
+              "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+            },
+            "currency": {
+              "type": "string",
+              "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+            }
+          }
+        }
+      }
+    },
+    "personal": {
+      "type": "boolean",
+      "description": "Indicates transaction was done for personal purpose."
+    },
+    "acquirerReferenceNumber": {
+      "type": "string",
+      "description": "The acquirer reference number as provided by the card network for the transaction."
+    }
+  }
+}

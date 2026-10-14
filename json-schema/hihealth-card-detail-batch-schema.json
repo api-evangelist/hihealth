@@ -1,0 +1,740 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/hihealth/main/json-schema/hihealth-card-detail-batch-schema.json",
+  "title": "CardDetailBatch",
+  "x-generated": "2026-10-14",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/CardDetailBatch",
+  "type": "object",
+  "properties": {
+    "cardId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the card."
+    },
+    "cardRequestId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "If this card originated from a card request, this field contains the unique identifier of the card request."
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the organization, this card belongs to."
+    },
+    "cardholderId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the cardholder, this card belongs to."
+    },
+    "cardAccountId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the card account, this card belongs to."
+    },
+    "type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "deprecated": true,
+      "description": "Deprecated, please use `cardConfig` instead.\n`VIRTUAL` - Virtual credit card\n`SINGLE_USE` - One-time virtual credit card (only one authorization allowed per card)\n`PHYSICAL` - Physical credit card\n`BLACK` - Physical black premium credit card\n`TRAVEL` - Virtual cards used specifically in travel industry related use cases\n",
+      "enum": [
+        "VIRTUAL",
+        "SINGLE_USE",
+        "PHYSICAL",
+        "BLACK",
+        "TRAVEL"
+      ]
+    },
+    "cardConfig": {
+      "type": "string",
+      "description": "The Pliant card configuration of this card. This describes all feature of this card in one single configuration, e.g. the type of the card and also the design of the card etc. It replaces the deprecated card `type`. Please refer to the [guide section](/docs/card-entity) to learn more about possible values."
+    },
+    "status": {
+      "type": "string",
+      "description": "The status of the card.\n\n**Deprecation Notice:** The status values `PENDING_ACTIVATION`, `PENDING_ISSUANCE`, and `PENDING_REGISTRATION` are deprecated and will be mapped to `PENDING` with appropriate `pendingDetails` in the future. Use `PENDING` with the corresponding `pendingDetails` value instead.\n",
+      "enum": [
+        "PENDING",
+        "PENDING_ACTIVATION",
+        "PENDING_ISSUANCE",
+        "PENDING_REGISTRATION",
+        "REQUEST_APPROVED",
+        "REQUESTED",
+        "REQUEST_CANCELLED",
+        "REQUEST_REJECTED",
+        "ACTIVE",
+        "LOCKED",
+        "LOCKED_PIN",
+        "EXPIRED",
+        "TERMINATED",
+        "TERMINATED_LOST",
+        "TERMINATED_STOLEN"
+      ],
+      "x-enumDescriptions": {
+        "PENDING": "Card is in a pending state. Check `pendingDetails` for the specific reason.",
+        "PENDING_ACTIVATION": "~~(Deprecated) Use `PENDING` with `pendingDetails: PENDING_ACTIVATION` instead.~~",
+        "PENDING_ISSUANCE": "~~(Deprecated) Use `PENDING` with `pendingDetails: PENDING_ISSUANCE` instead.~~",
+        "PENDING_REGISTRATION": "~~(Deprecated) Use `PENDING` with `pendingDetails: PENDING_REGISTRATION` instead.~~",
+        "REQUEST_APPROVED": "Card request has been approved.",
+        "REQUESTED": "Card has been requested.",
+        "REQUEST_CANCELLED": "Card request has been cancelled.",
+        "REQUEST_REJECTED": "Card request has been rejected.",
+        "ACTIVE": "Card is active and can be used.",
+        "LOCKED": "Card is locked.",
+        "LOCKED_PIN": "Card is locked due to PIN issues.",
+        "EXPIRED": "Card has expired.",
+        "TERMINATED": "Card has been terminated.",
+        "TERMINATED_LOST": "Card has been terminated because it was lost.",
+        "TERMINATED_STOLEN": "Card has been terminated because it was stolen."
+      }
+    },
+    "pendingDetails": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The internal reason for a card's pending state. This field is only populated when `status` is `PENDING` or one of the deprecated `PENDING_...` statuses, and will be `null` for all non-pending statuses.\n",
+      "enum": [
+        "PENDING_ACTIVATION",
+        "PENDING_ISSUANCE",
+        "PENDING_REGISTRATION",
+        "PENDING_VALIDITY",
+        "PENDING_SANCTION_SCREEN",
+        "PENDING_INFORMATION"
+      ],
+      "x-enumDescriptions": {
+        "PENDING_ACTIVATION": "Card is pending activation.",
+        "PENDING_ISSUANCE": "Card is pending issuance.",
+        "PENDING_REGISTRATION": "Card is pending registration.",
+        "PENDING_VALIDITY": "Card is pending validity period.",
+        "PENDING_SANCTION_SCREEN": "Card is pending sanction screening.",
+        "PENDING_INFORMATION": "Card is pending additional information."
+      }
+    },
+    "label": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "A short text describing the card. Available only for virtual cards with a `cardConfig` containing `VIRTUAL` or `TRAVEL`. The maximum length is 40 characters.",
+      "maxLength": 40
+    },
+    "purpose": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "A short text describing the card. Available only for virtual cards with a `cardConfig` containing `SINGLE_USE`, the maximum length is 40 characters.",
+      "maxLength": 40
+    },
+    "refNum": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The last 4 digits of the PAN (payment card number), better known as the credit card number. It can be `null` e.g. for terminated cards."
+    },
+    "issuingDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Date-time of card issuing, e.g. `2023-08-23T14:28:53.600608Z`. Can be null e.g. for cards which are requested by a [cardholder](/docs/cardholder-entity) but the request is declined.",
+      "format": "date-time"
+    },
+    "expiryDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Date-time (without nanoseconds) when card expires, e.g. `2026-07-31T23:59:59Z`. For cards with type `SINGLE_USE` this is set to 12 months automatically and every value put here is ignored. Can be null e.g. for cards which are requested by a [cardholder](/docs/cardholder-entity) but the request is declined.",
+      "format": "date-time"
+    },
+    "limit": {
+      "type": "object",
+      "description": "The limit of the card, describing the overall limit of this card. It might get reset regularly depending on the field `limitRenewFrequency`.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+        }
+      }
+    },
+    "transactionLimit": {
+      "type": "object",
+      "description": "The transaction limit of the card, describing the maximum amount a single transaction can have on this card.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+        }
+      }
+    },
+    "spendingBalance": {
+      "type": "object",
+      "description": "The spending balance of the card.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+        }
+      }
+    },
+    "availableBalance": {
+      "type": "object",
+      "description": "The available balance of the card.",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar."
+        }
+      }
+    },
+    "token": {
+      "type": "string",
+      "description": "The network token of the card."
+    },
+    "cardDesign": {
+      "type": "string",
+      "description": "The card design of the card on Thredd (Pliant's credit card processor) side."
+    },
+    "productRef": {
+      "type": "string",
+      "description": "The product reference of the card on Thredd (Pliant's credit card processor) side. This field is deprecated and will be removed in the future. Use `cardDesignId` instead.",
+      "deprecated": true
+    },
+    "platformFee": {
+      "type": "boolean",
+      "description": "Whether the card is used for the internal Pliant platform fee or not."
+    },
+    "limitPeriodEnd": {
+      "type": "string",
+      "description": "Date-time (without nanoseconds) when the current limit period ends, e.g. `2023-09-30T23:59:59Z`.",
+      "format": "date-time"
+    },
+    "limitRenewDate": {
+      "type": "string",
+      "description": "Date when the limit will be renewed, e.g. `2023-10-01`.",
+      "format": "date"
+    },
+    "limitRenewFrequency": {
+      "type": "string",
+      "enum": [
+        "DAILY",
+        "WEEKLY",
+        "MONTHLY",
+        "QUARTERLY",
+        "ANNUAL",
+        "TOTAL"
+      ],
+      "description": "Describes how often the limit of the card is renewed.\n  * `DAILY` - The card limit is renewed every day\n  * `WEEKLY` - The card limit is renewed every week\n  * `MONTHLY` - The card limit is renewed every calendar month\n  * `QUARTERLY` - The card limit is renewed every calendar quarter\n  * `ANNUAL` - The card limit is renewed every year\n  * `TOTAL` - The card limit is never going to be renewed. After the limit is spent the card cannot be used anymore.\n"
+    },
+    "customFirstName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Optional first name on `TRAVEL` cards which is used on the card, instead of the regular [cardholder](/docs/cardholder-entity) name. If empty, the regular [cardholder](/docs/cardholder-entity) name is used."
+    },
+    "customLastName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Optional last name on `TRAVEL` cards which is used on the card, instead of the regular [cardholder](/docs/cardholder-entity) name. If empty, the regular [cardholder](/docs/cardholder-entity) name is used."
+    },
+    "cardControls": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "The card controls of the card, if any apply.",
+      "$ref": "#/$defs/CardControls"
+    },
+    "replacedByCardId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Filled, if this card was replaced by another card."
+    },
+    "replacedCardId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Filled, if this card replaced another card."
+    },
+    "replacementReason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Describes the reason for the card replacement, if any happened.",
+      "enum": [
+        "DAMAGED",
+        "EXPIRING_SOON",
+        "LOST",
+        "OTHER",
+        "STOLEN"
+      ]
+    },
+    "shippingDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Date-time when the physical card was shipped, e.g. `2023-10-16T11:34:59.595Z`. This field is empty for all other types of cards, or when the physical card is not shipped yet.",
+      "format": "date-time"
+    },
+    "panAlias": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The PAN alias of the card. This is not the real credit card number (PAN) but a alias version of it."
+    },
+    "validFrom": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "Optional field to describe a fixed date range in which the card is usable for purchases. Outside of this date range, the card cannot be used for any purchases, only for zero-amount card-checks, and is shown with `status` `PENDING`. If not provided, the card is active immediately. Date needs to be provided as `yyyy-mm-dd` and is treated inclusive, meaning the provided date is already a valid day to use the card. If used, the parallel usage of card controls regarding `dates` and/or `times` is not allowed and the `validityPeriod` will be set to 36 months automatically. The earliest possible date is the current date. The `validFrom` date needs to be before the `validTo` date. The fields `validFrom`, `validTo` and `validTimezone` need to be used together, if used at all."
+    },
+    "validTo": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "Optional field to describe a fixed date range in which the card is usable for purchases. After the specified date, the card is automatically terminated. If not provided, the card is active until the `validityPeriod` ends. Date needs to be provided as `yyyy-mm-dd` and is treated inclusive, meaning the card will be terminated one day after this date. If used, the parallel usage of card controls regarding `dates` and/or `times` is not allowed and the `validityPeriod` will be set to 36 months automatically. The earliest possible date is the current date. The latest possible date is the end date of the `validityPeriod`. The fields `validFrom`, `validTo` and `validTimezone` need to be used together, if used at all."
+    },
+    "validTimezone": {
+      "type": "string",
+      "description": "Optional field to describe the timezone for the `validFrom` and `validTo` fields. This field is mandatory if `validFrom` and `validTo` fields are used. A list of valid timezones can be found in our [guide section](/docs/card-controls-1)."
+    },
+    "maxTransactionCount": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 999999999,
+      "description": "Optional field to describe the maximum number of transactions within the range of `1..999999999` that can be performed with this card. If not provided, the card can be used for an unlimited number of transactions until the card expires."
+    },
+    "customFields": {
+      "type": "array",
+      "description": "The [custom fields](/docs/custom-fields-on-transactions) set on this card. These [custom fields](/docs/custom-fields-on-transactions) are used as default values for every transaction made with this card.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The id of the custom field used on this card."
+          },
+          "label": {
+            "type": "string",
+            "description": "The label of the custom field used on this card."
+          },
+          "defaultValue": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The default value of the custom field on this card. This default value will be copied to every transaction made with this card."
+          }
+        }
+      }
+    },
+    "cardDesignId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the card design used for this specific card."
+    },
+    "cardDesignLogoName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The name of the card design used for this specific card."
+    },
+    "maskedPan": {
+      "type": "string",
+      "description": "The masked PAN of the card. This is the real credit card number (PAN) but with the middle digits replaced by `*`. E.g. `481063******6054`."
+    },
+    "benefit": {
+      "type": "boolean",
+      "description": "Indicates that the card was issued as an employee benefit."
+    },
+    "copilots": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Optional feature for `TRAVEL` cards. The copilot also has access to the card and its card details alongside with the cardholder of the card itself.",
+      "properties": {
+        "cardholderIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "The IDs of the cardholders assigned as copilots to the card."
+        },
+        "teamIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "The IDs of the teams assigned as copilots to the card."
+        }
+      }
+    },
+    "clickToPayInfo": {
+      "$ref": "#/$defs/clickToPayInfo"
+    },
+    "fundingType": {
+      "type": "string",
+      "description": "* `CHARGE` - normal (non-benefit) credit card\n* `LOAD_BASED_ACCRUING` - benefit card where money not spent is transferred to the next month\n* `LOAD_BASED_NON_ACCRUING` - benefit card where money not spent is lost end of month\n* `BALANCE_BASED` - benefit card with a standing balance that persists across months and is spent down until depleted (no monthly reset).\n",
+      "enum": [
+        "CHARGE",
+        "LOAD_BASED_ACCRUING",
+        "LOAD_BASED_NON_ACCRUING",
+        "BALANCE_BASED"
+      ]
+    },
+    "nextLoadDate": {
+      "type": "string",
+      "format": "date",
+      "description": "For cards that are loaded periodically, indicates the date when the card will be loaded the next time."
+    },
+    "additionalLimits": {
+      "type": "array",
+      "description": "Additional limits on this card. Empty when none are configured.",
+      "items": {
+        "$ref": "#/$defs/items"
+      }
+    }
+  },
+  "$defs": {
+    "CardControls": {
+      "type": "object",
+      "properties": {
+        "categories": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "type",
+            "values",
+            "restriction"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "MCC",
+                "CATEGORY"
+              ],
+              "description": "Type of the category control to use. `MCC` represents the merchant category code as defined by card networks, whereas `CATEGORY` is a Pliant internal grouping of transactions done with a credit card. Both values can be found in the response from the [transaction details endpoint](./get-transactions-detail-batch) or in our [guide section](/docs/card-controls-1)."
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Values for this category control which should be allowed or blocked. Can be either a list of `MCCs` or Pliant's payment categories. Both values can be found in the response from the [transaction details endpoint](./get-transactions-detail-batch) or in our [guide section](/docs/card-controls-1)."
+            },
+            "restriction": {
+              "type": "string",
+              "enum": [
+                "ALLOWED",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        "merchants": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "type",
+            "values",
+            "restriction"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "MATCH_TERM",
+                "MID"
+              ],
+              "description": "Type of the merchant control to use. `MATCH_TERM` is the merchant name to match. Matching here works by checking if the provided term is part of a merchant name, the check is case insensitive. `MID` represents the merchant identifier as assigned by the card network. It can be found in the [transaction details response](./get-transactions-detail-batch). There it is named `mid`."
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Values for this merchant control which should be allowed or blocked."
+            },
+            "restriction": {
+              "type": "string",
+              "enum": [
+                "ALLOWED",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        "dates": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "type",
+            "values",
+            "timezone",
+            "restriction"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "YEARLY",
+                "MONTHLY",
+                "WEEKLY",
+                "FIXED"
+              ],
+              "description": "Type of the date control to use. `YEARLY`, `MONTHLY` and `WEEKLY` are recurring dates, whereas `FIXED` is a fixed date range."
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Values for this date control which should be allowed or blocked.\n`YEARLY`, `MONTHLY` and `FIXED` each take exactly one value. A second value is rejected.\n`WEEKLY` takes one or more weekdays.\nPatterns:\n`YEARLY`: one range `dd.MM-dd.MM`.\n`MONTHLY`: one range `dd-dd`. Days are `01` to `28`, or `last`, `last-1` or `last-2` for the last day of the month or one to two days before.\n`WEEKLY`: one or more of `MONDAY`, `TUESDAY`, `WEDNESDAY`, `THURSDAY`, `FRIDAY`, `SATURDAY`, `SUNDAY`.\n`FIXED`: one range `dd.MM.yyyy-dd.MM.yyyy`.\nTo block transactions at the end of the month, use `MONTHLY` with the single value `20-last`.\n"
+            },
+            "timezone": {
+              "type": "string",
+              "description": "Timezone to use for the date control. A list of valid timezones can be found in our [guide section](/docs/card-controls-1)."
+            },
+            "restriction": {
+              "type": "string",
+              "enum": [
+                "ALLOWED",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        "times": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "type",
+            "values",
+            "timezone",
+            "restriction"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "TIMERANGE"
+              ],
+              "description": "Type of the time control. Currently only `TIMERANGE` is supported."
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Only one time range is allowed for this control. The allowed pattern is `HH:mm-HH:mm`.\nSo for example if you want to block all transactions between 10pm and 6am, you can use `TIMERANGE` with the value `22:00-06:00`.\n"
+            },
+            "timezone": {
+              "type": "string",
+              "description": "Timezone to use for the time control. A list of valid timezones can be found in our [guide section](/docs/card-controls-1)."
+            },
+            "restriction": {
+              "type": "string",
+              "enum": [
+                "ALLOWED",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        "locations": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "type",
+            "values",
+            "restriction"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "POSTAL_CODE",
+                "REGION"
+              ],
+              "description": "Type of the location-based control.\n- `POSTAL_CODE`: Then `values` are postal codes\n- `REGION`: Then `values` are region IDs of your organization\n"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Values for this location control which should be allowed or blocked.\nFor `POSTAL_CODE`, each value is matched in full and case-insensitively against the merchant postal code. A shorter value is not a prefix, and `*` is not a wildcard: `68` matches only `68`, and `68*` matches only the literal `68*`.\nFor `REGION`, each value is a region ID of your organization.\nIf the transaction has no merchant postal code, this control does not decline it.\nExample: to block postal codes `12345` and `67890`, send both values with restriction `BLOCKED`.\n"
+            },
+            "restriction": {
+              "type": "string",
+              "enum": [
+                "ALLOWED",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        "countries": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "restriction",
+            "values"
+          ],
+          "description": "Optional object defining country-based transaction restrictions.\nYou can configure cards to either allow transactions only in specified countries (whitelist)\nor block transactions in specified countries (blacklist).\nCountry codes must be valid ISO 3166-1 alpha-3 codes (e.g., `DEU`, `AUT`, `USA`).\nThis control is not available for US-issued cards.\n",
+          "properties": {
+            "restriction": {
+              "type": "string",
+              "enum": [
+                "ALLOWED",
+                "BLOCKED"
+              ],
+              "description": "Defines the restriction type for the country control.\n- `ALLOWED`: Only transactions in the listed countries are permitted (whitelist).\n- `BLOCKED`: Transactions in the listed countries are declined (blacklist).\n"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of ISO 3166-1 alpha-3 country codes (e.g., `DEU`, `AUT`, `USA`).\nAt least one country code must be provided.\n"
+            }
+          }
+        },
+        "currencies": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "restriction",
+            "values"
+          ],
+          "description": "Optional object defining currency-based transaction restrictions.\nYou can configure cards to either allow transactions only in specified currencies (whitelist)\nor block transactions in specified currencies (blacklist).\nCurrency codes must be valid ISO 4217 codes (e.g., `EUR`, `GBP`, `USD`).\n",
+          "properties": {
+            "restriction": {
+              "type": "string",
+              "enum": [
+                "ALLOWED",
+                "BLOCKED"
+              ],
+              "description": "Defines the restriction type for the currency control.\n- `ALLOWED`: Only transactions in the listed currencies are permitted (whitelist).\n- `BLOCKED`: Transactions in the listed currencies are declined (blacklist).\n"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of ISO 4217 currency codes (e.g., `EUR`, `GBP`, `USD`).\nAt least one currency code must be provided.\n"
+            }
+          }
+        },
+        "acceptanceMethods": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "type",
+            "values",
+            "restriction"
+          ],
+          "description": "Optional object defining which acceptance methods are permitted.\nThis control is an allow-list only. `restriction` must be `ALLOWED`.\nThe methods in `values` are the only ones permitted; every other method is declined.\nThere is no block-list. Do not send `BLOCKED`: it is not applied, and the methods in `values` are stored as the allowed set.\n",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "ACCEPTANCE_METHOD"
+              ],
+              "description": "Type of the acceptance method control to use. Currently only `ACCEPTANCE_METHOD` is supported.\n"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "ONLINE",
+                  "MOBILE_WALLET",
+                  "MANUAL_ENTRY",
+                  "CONTACTLESS",
+                  "CHIP_DIP",
+                  "NOT_AVAILABLE",
+                  "MAGNETIC_STRIPE",
+                  "OTHER"
+                ]
+              },
+              "description": "List of acceptance methods that are allowed for transactions. \nOnly the methods listed here will be permitted if this control is provided.\nPossible values:\n- `ONLINE`: Card-not-present transactions\n- `MOBILE_WALLET`: Payments via mobile wallets (e.g., Apple Pay, Google Pay)\n- `MANUAL_ENTRY`: Card number entered manually\n- `CONTACTLESS`: Tap-based payments\n- `CHIP_DIP`: Inserted chip transactions\n- `NOT_AVAILABLE`: Transactions where acceptance method information is unavailable\n- `MAGNETIC_STRIPE`: Swipe-based payments\n- `OTHER`: Any other unspecified acceptance method\n"
+            },
+            "restriction": {
+              "type": "string",
+              "enum": [
+                "ALLOWED"
+              ],
+              "description": "Must be `ALLOWED`. Only the methods in `values` are permitted.\n`BLOCKED` is not a supported restriction and does not block the methods in `values`.\n"
+            }
+          }
+        }
+      }
+    }
+  }
+}

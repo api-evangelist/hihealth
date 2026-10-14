@@ -6,10 +6,8 @@ authentication:
   style: OAuth2 client_credentials (Auth0), Bearer token in Authorization header
   ref: authentication/hihealth-authentication.yml
 async_model:
-  description: >-
-    Mutating operations are asynchronous. Many write endpoints return 202 Accepted
-    and complete out-of-band; clients rely on callbacks (webhooks) to learn when
-    the entity reaches its final state (e.g. a card becomes ACTIVE).
+  description: Mutating operations are asynchronous. Many write endpoints return 202 Accepted and complete out-of-band; clients rely on callbacks
+    (webhooks) to learn when the entity reaches its final state (e.g. a card becomes ACTIVE).
   docs: https://partner.getpliant.com/docs/core-concepts.md
 pagination:
   style: page-number
@@ -21,10 +19,13 @@ pagination:
   docs: https://partner.getpliant.com/docs/pagination.md
 idempotency:
   supported: false
-  notes: >-
-    No Idempotency-Key header or idempotency guidance is documented in the API
-    guidelines; safety on retries is instead handled through the asynchronous
-    callback model and explicit status queries.
+  notes: No Idempotency-Key header or idempotency guidance is documented in the API guidelines; safety on retries is instead handled through the
+    asynchronous callback model and explicit status queries.
+  coverage: partial
+  header: Idempotency-Key
+  mechanism: request header / body token declared in the OpenAPI
+  evidence: Idempotency-Key on 1 of 245 mutating operations
+  verified: derived
 error_envelope:
   format: http-status + JSON error body
   docs: https://partner.getpliant.com/docs/error-handling.md

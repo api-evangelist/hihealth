@@ -1,0 +1,18 @@
+generated: '2026-10-14'
+method: none
+source:
+- https://zapier.com/apps/hihealth/integrations
+- https://zapier.com/apps/hi-health/integrations
+- https://n8n.io/integrations/hihealth/
+- https://composio.dev/toolkits/hihealth
+- https://monid.ai/tools/hihealth
+checked:
+- https://composio.dev/toolkits/hihealth
+- https://monid.ai/tools/hihealth
+- https://n8n.io/integrations/hihealth/
+- https://zapier.com/apps/hi-health/integrations
+- https://zapier.com/apps/hihealth/integrations
+summary: null
+marketplace_apps: []
+edges: []
+templates: []

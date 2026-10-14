@@ -1,0 +1,100 @@
+generated: '2026-10-14'
+method: derived
+source: the pre-flight dossier, apis.yml pointers, spec servers, well-known, vendors -- nothing fetched here
+generator: derive-hosts.py
+summary:
+  hosts: 8
+  own: 7
+  other_domain: 0
+  platform: 1
+  roles:
+  - identity
+  - marketing
+  - other
+  - portal
+  - status
+  - website
+hosts:
+- host: app.getpliant.com
+  found_by:
+  - pointer
+  types:
+  - SignUp
+  serves: []
+  registrable_domain: getpliant.com
+  role: identity
+  relation: own
+- host: customer-api.getpliant.com
+  found_by:
+  - apis[]
+  types: []
+  serves:
+  - docs
+  registrable_domain: getpliant.com
+  role: other
+  relation: own
+- host: getpliant.com
+  found_by:
+  - pointer
+  types:
+  - Blog
+  - Pricing
+  - PrivacyPolicy
+  - TermsOfService
+  serves: []
+  registrable_domain: getpliant.com
+  role: marketing
+  relation: own
+- host: help.getpliant.com
+  found_by:
+  - pointer
+  types:
+  - Support
+  - StatusPage
+  serves: []
+  registrable_domain: getpliant.com
+  role: status
+  relation: own
+- host: partner-api.getpliant.com
+  found_by:
+  - apis[]
+  types: []
+  serves:
+  - api
+  registrable_domain: getpliant.com
+  role: other
+  relation: own
+- host: partner.getpliant.com
+  found_by:
+  - pointer
+  - apis[]
+  types:
+  - DeveloperPortal
+  - Documentation
+  - APIReference
+  - GettingStarted
+  - Deprecation
+  serves:
+  - docs
+  registrable_domain: getpliant.com
+  role: portal
+  relation: own
+- host: www.getpliant.com
+  found_by:
+  - pointer
+  types:
+  - Website
+  - Security
+  serves: []
+  registrable_domain: getpliant.com
+  role: website
+  relation: own
+- host: www.linkedin.com
+  found_by:
+  - pointer
+  types:
+  - LinkedIn
+  serves: []
+  registrable_domain: linkedin.com
+  role: other
+  relation: platform

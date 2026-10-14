@@ -1,0 +1,443 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/hihealth/main/json-schema/hihealth-organization-create-schema.json",
+  "title": "OrganizationCreate",
+  "x-generated": "2026-10-14",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/hihealth-pliant-partner-api-openapi.yml#/components/schemas/OrganizationCreate",
+  "type": "object",
+  "required": [
+    "name",
+    "country",
+    "currency",
+    "billingAddress",
+    "legalForm",
+    "tradeRegisterNumber",
+    "foundationDate",
+    "partnerOrganizationId"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 255,
+      "description": "Legal entity name."
+    },
+    "country": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "ISO 3166-1 alpha-2 country code."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217 currency code."
+    },
+    "billingAddress": {
+      "type": "object",
+      "required": [
+        "streetName",
+        "streetNumber",
+        "postalCode",
+        "city",
+        "country"
+      ],
+      "properties": {
+        "streetName": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Street name."
+        },
+        "streetNumber": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Street number."
+        },
+        "streetAdditional": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Additional address line (e.g. apartment, floor)."
+        },
+        "postalCode": {
+          "type": "string",
+          "maxLength": 16,
+          "description": "Postal code. Validated against country-specific format."
+        },
+        "city": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "City."
+        },
+        "subdivisionCode": {
+          "type": "string",
+          "maxLength": 6,
+          "description": "ISO 3166-2 subdivision code without the country prefix (e.g. `NY` for New York, US). Optional — recommended for US addresses.\n"
+        },
+        "country": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$",
+          "description": "ISO 3166-1 alpha-2 country code. Must match the top-level `country` field."
+        }
+      }
+    },
+    "legalForm": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Legal form of the entity. Use a value for the organization's `country` from\n[Legal forms by country](/docs/legal-forms-by-country).\nPreserve the exact spelling, capitalization, spaces, and punctuation.\n"
+    },
+    "vatId": {
+      "type": "string",
+      "description": "VAT identification number."
+    },
+    "tradeRegisterNumber": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Trade register number of the legal entity."
+    },
+    "nationalRegisterCourt": {
+      "type": "string",
+      "description": "National register court. Required for DE only."
+    },
+    "foundationDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Foundation date of the legal entity in ISO 8601 format (YYYY-MM-DD). Must be in the past."
+    },
+    "partnerOrganizationId": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Your permanent reference ID for this organization (e.g. your internal business customer ID). Stored verbatim, \nechoed back on all responses, and enforced as unique per partner — prevents logical duplicates across separate API calls. \nDistinct from the Idempotency-Key header, which handles network-level retry safety.\n"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Arbitrary key-value pairs for storing additional information on this Pliant object.\nFor your own use and reference.\n"
+    },
+    "leadData": {
+      "type": "object",
+      "description": "Additional lead information used for sales qualification and CRM enrichment.",
+      "required": [
+        "accountType",
+        "customerAcquisitionChannel",
+        "customerRelationshipLength",
+        "contacts"
+      ],
+      "properties": {
+        "accountType": {
+          "type": "string",
+          "description": "If known, which card product is requested by customer. Either with credit line (=credit) or without credit line (=prefund).",
+          "enum": [
+            "CREDIT",
+            "PREFUNDED"
+          ]
+        },
+        "industry": {
+          "type": "string",
+          "description": "Industry of the legal entity.",
+          "enum": [
+            "ACCOUNTING",
+            "AIRLINES_AVIATION",
+            "ALTERNATIVE_DISPUTE_RESOLUTION",
+            "ALTERNATIVE_MEDICINE",
+            "ANIMATION",
+            "APPAREL_FASHION",
+            "ARCHITECTURE_PLANNING",
+            "ARTS_AND_CRAFTS",
+            "AUTOMOTIVE",
+            "AVIATION_AEROSPACE",
+            "BANKING",
+            "BIOTECHNOLOGY",
+            "BROADCAST_MEDIA",
+            "BUILDING_MATERIALS",
+            "BUSINESS_SERVICES",
+            "BUSINESS_SUPPLIES_AND_EQUIPMENT",
+            "CAPITAL_MARKETS",
+            "CHEMICALS",
+            "CIVIC_SOCIAL_ORGANIZATION",
+            "CIVIL_ENGINEERING",
+            "COMMERCIAL_REAL_ESTATE",
+            "COMPUTER_GAMES",
+            "COMPUTER_HARDWARE",
+            "COMPUTER_NETWORK_SECURITY",
+            "COMPUTER_NETWORKING",
+            "COMPUTER_SOFTWARE",
+            "CONSTRUCTION",
+            "CONSUMER_ELECTRONICS",
+            "CONSUMER_GOODS",
+            "CONSUMER_SERVICES",
+            "CONVENIENCE_STORES_GAS_STATIONS_LIQUOR_STORES",
+            "COSMETICS",
+            "DAIRY",
+            "DEFENSE_SPACE",
+            "DESIGN",
+            "E_COMMERCE",
+            "E_LEARNING",
+            "EDUCATION_MANAGEMENT",
+            "ELECTRICAL_ELECTRONIC_MANUFACTURING",
+            "ENTERTAINMENT",
+            "ENVIRONMENTAL_SERVICES",
+            "EVENTS_SERVICES",
+            "EXECUTIVE_OFFICE",
+            "FACILITIES_SERVICES",
+            "FARMING",
+            "FINANCIAL_SERVICES",
+            "FINE_ART",
+            "FISHERY",
+            "FOOD_BEVERAGES",
+            "FOOD_PRODUCTION",
+            "FUND_RAISING",
+            "FURNITURE",
+            "GAMBLING_CASINOS",
+            "GLASS_CERAMICS_CONCRETE",
+            "GOVERNMENT_ADMINISTRATION",
+            "GOVERNMENT_RELATIONS",
+            "GRAPHIC_DESIGN",
+            "HEALTH_WELLNESS_AND_FITNESS",
+            "HIGHER_EDUCATION",
+            "HOSPITAL_HEALTH_CARE",
+            "HOSPITALITY",
+            "HUMAN_RESOURCES",
+            "IMPORT_AND_EXPORT",
+            "INDIVIDUAL_FAMILY_SERVICES",
+            "INDUSTRIAL_AUTOMATION",
+            "INFORMATION_SERVICES",
+            "INFORMATION_TECHNOLOGY_AND_SERVICES",
+            "INSURANCE",
+            "INTERNATIONAL_AFFAIRS",
+            "INTERNATIONAL_TRADE_AND_DEVELOPMENT",
+            "INTERNET",
+            "INVESTMENT_BANKING",
+            "INVESTMENT_MANAGEMENT",
+            "IT_SERVICE",
+            "JUDICIARY",
+            "LAW_ENFORCEMENT",
+            "LAW_PRACTICE",
+            "LEGAL_SERVICES",
+            "LEGISLATIVE_OFFICE",
+            "LEISURE_TRAVEL_TOURISM",
+            "LIBRARIES",
+            "LOGISTICS_AND_SUPPLY_CHAIN",
+            "LUXURY_GOODS_JEWELRY",
+            "MACHINERY",
+            "MANAGEMENT_CONSULTING",
+            "MARITIME",
+            "MARKET_RESEARCH",
+            "MARKETING_AND_ADVERTISING",
+            "MECHANICAL_OR_INDUSTRIAL_ENGINEERING",
+            "MEDIA_PRODUCTION",
+            "MEDICAL_DEVICES",
+            "MEDICAL_PRACTICE",
+            "MENTAL_HEALTH_CARE",
+            "MILITARY",
+            "MINING_METALS",
+            "MOTION_PICTURES_AND_FILM",
+            "MUSEUMS_AND_INSTITUTIONS",
+            "MUSIC",
+            "NANOTECHNOLOGY",
+            "NEWSPAPERS",
+            "NON_PROFIT_ORGANIZATION_MANAGEMENT",
+            "OIL_ENERGY",
+            "ONLINE_MEDIA",
+            "OUTSOURCING_OFFSHORING",
+            "PACKAGE_FREIGHT_DELIVERY",
+            "PACKAGING_AND_CONTAINERS",
+            "PAPER_FOREST_PRODUCTS",
+            "PERFORMING_ARTS",
+            "PHARMACEUTICALS",
+            "PHILANTHROPY",
+            "PHOTOGRAPHY",
+            "PLASTICS",
+            "POLITICAL_ORGANIZATION",
+            "PRIMARY_SECONDARY_EDUCATION",
+            "PRINTING",
+            "PROFESSIONAL_TRAINING_COACHING",
+            "PROGRAM_DEVELOPMENT",
+            "PUBLIC_POLICY",
+            "PUBLIC_RELATIONS_AND_COMMUNICATIONS",
+            "PUBLIC_SAFETY",
+            "PUBLISHING",
+            "RAILROAD_MANUFACTURE",
+            "RANCHING",
+            "REAL_ESTATE",
+            "RECREATIONAL_FACILITIES_AND_SERVICES",
+            "RELIGIOUS_INSTITUTIONS",
+            "RENEWABLES_ENVIRONMENT",
+            "RESEARCH",
+            "RESTAURANTS",
+            "RETAIL",
+            "SECURITY_AND_INVESTIGATIONS",
+            "SEMICONDUCTORS",
+            "SHIPBUILDING",
+            "SPORTING_GOODS",
+            "SPORTS",
+            "STAFFING_AND_RECRUITING",
+            "SUPERMARKETS",
+            "TELECOMMUNICATIONS",
+            "TEXTILES",
+            "THINK_TANKS",
+            "TOBACCO",
+            "TRANSLATION_AND_LOCALIZATION",
+            "TRANSPORTATION",
+            "TRANSPORTATION_TRUCKING_RAILROAD",
+            "UTILITIES",
+            "VENTURE_CAPITAL_PRIVATE_EQUITY",
+            "VETERINARY",
+            "WAREHOUSING",
+            "WHOLESALE",
+            "WINE_AND_SPIRITS",
+            "WIRELESS",
+            "WRITING_AND_EDITING"
+          ]
+        },
+        "yearlyRevenue": {
+          "type": "object",
+          "description": "Estimated yearly revenue.",
+          "required": [
+            "value",
+            "currency"
+          ],
+          "properties": {
+            "value": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Amount in minor units (cents)."
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "ISO 4217 currency code."
+            }
+          }
+        },
+        "numberOfEmployees": {
+          "type": "integer",
+          "description": "Number of employees of the referred legal entity."
+        },
+        "plannedNumberOfCards": {
+          "type": "integer",
+          "description": "Estimated number of virtual and/or physical credit cards the referred legal entity will issue."
+        },
+        "paymentFrequency": {
+          "type": "string",
+          "enum": [
+            "MONTHLY",
+            "BI-WEEKLY",
+            "WEEKLY",
+            "DAILY",
+            "PREFUNDED"
+          ],
+          "description": "Desired payment frequency. Use `PREFUNDED` for prefunded account types.\n"
+        },
+        "expectedMonthlyTransactionVolume": {
+          "type": "object",
+          "required": [
+            "value",
+            "currency"
+          ],
+          "properties": {
+            "value": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Amount in minor units (cents)."
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "ISO 4217 currency code."
+            }
+          }
+        },
+        "customerAcquisitionChannel": {
+          "type": "string",
+          "enum": [
+            "OUTBOUND",
+            "INBOUND",
+            "REFERRAL",
+            "PARTNER",
+            "CAMPAIGN"
+          ],
+          "description": "Channel through which the customer was acquired."
+        },
+        "customerRelationshipLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Length of the existing relationship with the customer, in months."
+        },
+        "contacts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "description": "List of contact persons for the lead (relevant for HubSpot). Maximum 5 contacts.",
+          "items": {
+            "type": "object",
+            "required": [
+              "firstName",
+              "lastName",
+              "email"
+            ],
+            "properties": {
+              "salutation": {
+                "type": "string",
+                "enum": [
+                  "MRS",
+                  "MR"
+                ],
+                "description": "Salutation of the contact person."
+              },
+              "firstName": {
+                "type": "string",
+                "description": "First name of the contact person."
+              },
+              "lastName": {
+                "type": "string",
+                "description": "Last name of the contact person."
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "description": "Email address of the contact person."
+              },
+              "phone": {
+                "type": "string",
+                "description": "Phone number of the contact person."
+              },
+              "contactRole": {
+                "type": "string",
+                "enum": [
+                  "CONTACT",
+                  "LEGAL_REP"
+                ],
+                "default": "CONTACT",
+                "description": "Role of the person within the legal entity.\n- `LEGAL_REP`: Legal representative; the only role that can complete onboarding (e.g. sign terms and conditions).\n- `CONTACT`: Default for all other relevant contacts who are not legal representatives.\n"
+              }
+            }
+          }
+        },
+        "comment": {
+          "type": "string",
+          "description": "Any additional context or notes to consider for this lead."
+        },
+        "partnerContact": {
+          "type": "object",
+          "required": [
+            "name",
+            "email"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Full name of the partner contact responsible for the lead."
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Email address of the partner contact."
+            }
+          }
+        }
+      }
+    }
+  }
+}

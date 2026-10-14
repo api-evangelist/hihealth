@@ -1,6 +1,7 @@
 generated: '2026-07-19'
 method: searched
 source: https://partner.getpliant.com/docs/pliant-api-guidelines.md
+name: hi.health API Rate Limits
 rate_limits:
 - name: Pliant API default
   limit_count: 900
