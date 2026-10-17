@@ -1,0 +1,1321 @@
+openapi: 3.2.0
+info:
+  contact:
+    name: API Support
+    email: support@getpliant.com
+    url: https://www.getpliant.com
+  title: Pliant Partner Cashback API
+  description: Pliant Partner API
+  version: 2.1.0
+  license:
+    name: MIT
+    url: https://opensource.org/license/MIT
+servers:
+- url: https://partner-api.getpliant.com/api
+  description: Pliant Production Server
+- url: https://sandbox.partner-api.getpliant.com/api
+  description: Pliant Sandbox Server
+- url: https://pci-api.getpliant.com
+  description: PCI Vault Production Server
+- url: https://pci-sandbox.partner-api.getpliant.com
+  description: PCI Vault Sandbox Server
+security:
+- bearerAuth: []
+tags:
+- name: Cashback
+  description: This tag is for operations related to cashback
+paths:
+  /cashbacks/subscription:
+    post:
+      summary: 'Callback: Add/Update'
+      description: Subscribe to callbacks for this entity or change an existing callback.
+      tags:
+      - Cashback
+      operationId: create-cashback-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callbackUrl:
+                  type: string
+                  format: uri
+                  example: https://myserver.com/send/callback/here
+                  description: The URL to send the callback to. Must be a valid and reachable URL. We do some basic validation to ensure the URL is syntactically correct and reachable for Pliant. Only HTTPS URLs are supported.
+                eventTypes:
+                  type: array
+                  description: The event types to subscribe to.
+                  items:
+                    type: string
+                    enum:
+                    - CASHBACK_AMOUNT_CHANGED
+              required:
+              - callbackUrl
+              - eventTypes
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+      callbacks:
+        cashbackAmountUpdated:
+          '{$request.body#/callbackUrl}':
+            post:
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/CashbackAmountCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+    delete:
+      summary: 'Callback: Remove'
+      description: Remove a callback subscription for this entity.
+      tags:
+      - Cashback
+      operationId: remove-cashback-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventTypes:
+                  type: array
+                  description: The event types to unsubscribe from.
+                  items:
+                    type: string
+                    enum:
+                    - CASHBACK_AMOUNT_CHANGED
+              required:
+              - eventTypes
+      responses:
+        '200':
+          description: Ok
+  /cashbacks/{organizationId}:
+    get:
+      summary: Get Cashback Amounts
+      description: Get the cashback amounts for a specific organization.
+      tags:
+      - Cashback
+      operationId: get-cashback-amounts
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The organization for which the cashback amounts are requested.
+        schema:
+          type: string
+          format: uuid
+      - name: cardAccountId
+        in: query
+        description: Optionally, the card account for which the cashback amounts are requested. If not provided the default card account of the given organization is used. The current cashback amounts live on the operational card account. For a superseded card account, read them from its successor (`supersededBy`).
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cardAccountId:
+                    type: string
+                    format: uuid
+                    description: The card account for which the cashback amounts were requested. Equals the provided `cardAccountId` or the default card account of the given organization.
+                  cashbackValues:
+                    type: object
+                    required:
+                    - totalEarned
+                    - totalPending
+                    - totalRedeemable
+                    - totalRedeemed
+                    - totalPayout
+                    properties:
+                      totalEarned:
+                        type: object
+                        description: The total amount of cashback earned by the organization.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+                      totalPending:
+                        type: object
+                        description: The total amount of cashback that is pending.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+                      totalRedeemable:
+                        type: object
+                        description: The total amount of cashback that is redeemable.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+                      totalRedeemed:
+                        type: object
+                        description: Represents the total amount of cashback that has been redeemed but not necessarily paid out yet.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+                      totalPayout:
+                        type: object
+                        description: The total amount of cashback that has been paid out to the bank account of the customer as part of the redemption process.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+                      updatedAt:
+                        type:
+                        - string
+                        - 'null'
+                        format: date-time
+                        description: The date and time when the cashback values were last updated.
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /cashbacks/{organizationId}/configuration:
+    get:
+      summary: Get Cashback Configuration
+      description: Get the cashback configuration for a specific organization.
+      tags:
+      - Cashback
+      operationId: get-cashback-configuration
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The organization for which the cashback configuration is requested.
+        schema:
+          type: string
+          format: uuid
+      - name: cardAccountId
+        in: query
+        description: The ID of the [card account](/docs/card-account) to get the cashback configuration for. If not provided, the default card account of the organization is used. The cashback configuration in effect lives on the operational card account. For a superseded card account, read it from its successor (`supersededBy`).
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cardAccountId:
+                    type: string
+                    format: uuid
+                    description: The ID of the [card account](/docs/card-account) for this cashback configuration. If not specified during the request, the default card account of the organization is used.
+                  cashbackConfiguration:
+                    type: object
+                    properties:
+                      cashbackThresholds:
+                        type: object
+                        description: Can be `null` if organization is not active yet.
+                        required:
+                        - currentThreshold
+                        properties:
+                          currentThreshold:
+                            type: object
+                            description: The current monthly threshold for cashback.
+                            properties:
+                              value:
+                                type: number
+                              currency:
+                                type: string
+                          upcomingThreshold:
+                            type: object
+                            description: The upcoming monthly threshold for cashback. Only set if there is an upcoming change in the threshold.
+                            properties:
+                              value:
+                                type: number
+                              currency:
+                                type: string
+                          updatedAt:
+                            type:
+                            - string
+                            - 'null'
+                            format: date-time
+                            description: The date and time when the thresholds were last updated.
+                      cashbackRates:
+                        type: object
+                        description: Can be `null` if organization is not active yet.
+                        required:
+                        - general
+                        - fx
+                        - mccLowOne
+                        - mccLowTwo
+                        - mccZero
+                        properties:
+                          general:
+                            type: object
+                            description: Information about the general cashback rate.
+                            properties:
+                              type:
+                                type: string
+                                description: The type of the cashback.
+                                enum:
+                                - FREQUENCY_BASED
+                                - CUSTOM
+                              value:
+                                type: number
+                                description: Cashback rate in percent from `0..1`. E.g. `0.01` for `1%`.
+                              customExpirationDate:
+                                type: string
+                                format: date-time
+                                description: The date and time when the custom rate expires. Only set if the type is `CUSTOM`.
+                          fx:
+                            type: object
+                            description: The rate for foreign exchange (fx) cashback.
+                            required:
+                            - type
+                            - value
+                            properties:
+                              type:
+                                type: string
+                                description: The type of the cashback.
+                                enum:
+                                - DEFAULT
+                                - CUSTOM
+                              value:
+                                type: number
+                                description: Cashback rate in percent from 0..1. E.g. 0.01 for 1%.
+                              customExpirationDate:
+                                type: string
+                                format: date-time
+                                description: The date and time when the custom rate expires. Only set if the type is `CUSTOM`.
+                          mccLowOne:
+                            type: object
+                            description: 'The rate for specific cashback for the `MCC Low One` group. This groups includes: hotels, travel agencies, commuter transportation, trains and road tolls.'
+                            required:
+                            - type
+                            - value
+                            properties:
+                              type:
+                                type: string
+                                description: The type of the cashback.
+                                enum:
+                                - DEFAULT
+                                - CUSTOM
+                              value:
+                                type: number
+                                description: Cashback rate in percent from 0..1. E.g. 0.01 for 1%.
+                              customExpirationDate:
+                                type: string
+                                format: date-time
+                                description: The date and time when the custom rate expires. Only set if the type is `CUSTOM`.
+                          mccLowTwo:
+                            type: object
+                            description: 'The rate for specific cashback for the `MCC Low Two` group. This groups includes: service stations, auto fuel dispensers and fuel dealers.'
+                            required:
+                            - type
+                            - value
+                            properties:
+                              type:
+                                type: string
+                                description: The type of the cashback.
+                                enum:
+                                - DEFAULT
+                                - CUSTOM
+                              value:
+                                type: number
+                                description: Cashback rate in percent from 0..1. E.g. 0.01 for 1%.
+                              customExpirationDate:
+                                type: string
+                                format: date-time
+                                description: The date and time when the custom rate expires. Only set if the type is `CUSTOM`.
+                          mccZero:
+                            type: object
+                            description: 'The rate for specific cashback for the `MCC Zero` group. This groups includes: government payments, money services, charity and supermarkets.'
+                            required:
+                            - type
+                            - value
+                            properties:
+                              type:
+                                type: string
+                                description: The type of the cashback.
+                                enum:
+                                - DEFAULT
+                                - CUSTOM
+                              value:
+                                type: number
+                                description: Cashback rate in percent from 0..1. E.g. 0.01 for 1%.
+                              customExpirationDate:
+                                type: string
+                                format: date-time
+                                description: The date and time when the custom rate expires. Only set if the type is `CUSTOM`.
+                          updatedAt:
+                            type:
+                            - string
+                            - 'null'
+                            format: date-time
+                            description: The date and time when the rates were last updated.
+                      customCashbacks:
+                        type: object
+                        description: Information about custom cashbacks given to this organization. Can be empty.
+                        properties:
+                          cashbacks:
+                            type: array
+                            description: A list of custom cashbacks given to this organization.
+                            items:
+                              type: object
+                              required:
+                              - amount
+                              - createdAt
+                              properties:
+                                amount:
+                                  type: object
+                                  description: The amount of the custom cashback.
+                                  properties:
+                                    value:
+                                      type: number
+                                    currency:
+                                      type: string
+                                createdAt:
+                                  type: string
+                                  format: date-time
+                                  description: The date and time when the custom cashback was added.
+                                comment:
+                                  type: string
+                                  description: An comment/label for the custom cashback.
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /cashbacks/{organizationId}/history:
+    get:
+      summary: Get Cashback History
+      description: Get the cashback redemption history for a specific organization. Use the `limit` and `page` parameters to paginate results, `sortBy` and `sortDirection` to sort, and the date filter parameters (`createdAtFrom`/`createdAtTo`, `updatedAtFrom`/`updatedAtTo`, `paymentConfirmedAtFrom`/`paymentConfirmedAtTo`) to narrow results by time range. Multiple date filters can be combined. Requests without pagination parameters return the first page with the default limit.
+      tags:
+      - Cashback
+      operationId: get-cashback-history
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The organization for which the cashback history is requested.
+        schema:
+          type: string
+          format: uuid
+      - name: cardAccountId
+        in: query
+        description: The ID of the [card account](/docs/card-account) to get the cashback history for. If not provided, the default card account of the organization is used. Cashback entries keep the card account id they were earned on. If a card account was superseded, query both the superseded id and its successor (`supersededBy`) to get a complete history across the switch.
+        schema:
+          type: string
+          format: uuid
+      - name: limit
+        in: query
+        description: The maximum number of items to return per page. Defaults to 50 if not provided, the maximum allowed value is 1000.
+        schema:
+          type: integer
+          default: 50
+          maximum: 1000
+      - name: page
+        in: query
+        description: The page number to return, starting with 0, this counts up to the total number of pages. The total number of pages is determined by the total number of records divided by the limit.
+        schema:
+          type: integer
+          default: 0
+      - name: sortBy
+        in: query
+        description: The field to sort by.
+        schema:
+          type: string
+          enum:
+          - createdAt
+          - updatedAt
+          - paymentConfirmedAt
+      - name: sortDirection
+        in: query
+        description: The direction to sort by.
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: createdAtFrom
+        in: query
+        description: Filter records created at or after this timestamp. Uses ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+          example: '2026-01-01T00:00:00Z'
+      - name: createdAtTo
+        in: query
+        description: Filter records created at or before this timestamp. Uses ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+          example: '2026-03-31T23:59:59Z'
+      - name: updatedAtFrom
+        in: query
+        description: Filter records last updated at or after this timestamp. Uses ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+          example: '2026-01-01T00:00:00Z'
+      - name: updatedAtTo
+        in: query
+        description: Filter records last updated at or before this timestamp. Uses ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+          example: '2026-03-31T23:59:59Z'
+      - name: paymentConfirmedAtFrom
+        in: query
+        description: Filter records with payment confirmed at or after this timestamp. Uses ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+          example: '2026-03-01T00:00:00Z'
+      - name: paymentConfirmedAtTo
+        in: query
+        description: Filter records with payment confirmed at or before this timestamp. Uses ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+          example: '2026-03-31T23:59:59Z'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cardAccountId:
+                    type: string
+                    format: uuid
+                    description: The ID of the [card account](/docs/card-account) for this cashback history.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - id
+                      - status
+                      - cashbackAmount
+                      - user
+                      - iban
+                      - createdAt
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: The id of the cashback redemption.
+                        status:
+                          type: string
+                          description: The status of the cashback redemption.
+                          enum:
+                          - WAITING
+                          - SUBMIT
+                          - PENDING
+                          - FAILED
+                          - REDEEMED
+                        cashbackAmount:
+                          type: object
+                          description: The amount of cashback that was redeemed.
+                          properties:
+                            value:
+                              type: number
+                            currency:
+                              type: string
+                        receiptDocumentId:
+                          type: string
+                          format: uuid
+                          description: The receipt PDF of this cashback redemption. You can get the PDF itself via the [cashback receipt endpoint](get-cashback-receipt).
+                        user:
+                          type: string
+                          description: The email address of the user who redeemed the cashback.
+                        iban:
+                          type: string
+                          deprecated: true
+                          description: The IBAN to which the cashback was paid. Can be an empty string depending on the bank. See `bankAccount` for more details.
+                        bankAccount:
+                          type: object
+                          properties:
+                            bankAccountId:
+                              type: string
+                              format: uuid
+                              description: The unique identifier of the bank account.
+                            bankName:
+                              type: string
+                              description: The name of the bank.
+                            bic:
+                              type: string
+                              description: The [BIC](https://en.wikipedia.org/wiki/ISO_9362) of the bank account within the [SWIFT](https://en.wikipedia.org/wiki/SWIFT) territory.
+                            accountNumber:
+                              type: string
+                              description: The account number of the bank account. See `accountNumberType` for the type of the account number.
+                            accountNumberType:
+                              type: string
+                              description: The type of the account number. Within [SEPA territory](https://en.wikipedia.org/wiki/Single_Euro_Payments_Area), this is the IBAN. Outside of SEPA, this can be [CLABE](https://en.wikipedia.org/wiki/CLABE) or DOMESTIC.
+                              enum:
+                              - IBAN
+                              - CLABE
+                              - DOMESTIC
+                            currency:
+                              type:
+                              - string
+                              - 'null'
+                              description: The currency of the bank account.
+                        paymentConfirmedAt:
+                          type: string
+                          format: date-time
+                          description: The date and time when the cashback was paid to the provided IBAN.
+                        updatedAt:
+                          type:
+                          - string
+                          - 'null'
+                          format: date-time
+                          description: The date and time when the cashback redemption was last updated.
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: The date and time when the cashback was redeemed.
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates whether there is a next page available.
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /cashbacks/{organizationId}/receipts/{receiptId}:
+    get:
+      summary: Get Cashback Receipt
+      description: Get the cashback receipt as PDF for a specific organization.
+      tags:
+      - Cashback
+      operationId: get-cashback-receipt
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The organization for which the cashback receipt is requested.
+        schema:
+          type: string
+          format: uuid
+      - name: receiptId
+        in: path
+        required: true
+        description: The id of the cashback receipt. This can be obtained from the [cashback history endpoint](get-cashback-history).
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: The cashback receipt as PDF.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: base64
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /cashbacks/{organizationId}/redeem:
+    post:
+      summary: Redeem Cashback
+      description: Redeem cashback for a specific organization.
+      tags:
+      - Cashback
+      operationId: redeem-cashback
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The organization for which the cashback should be redeemed.
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bankAccountId
+              - payoutAmount
+              properties:
+                bankAccountId:
+                  type: string
+                  format: uuid
+                  description: The bank account to which the cashback should be paid out. It has to be a bank account obtained from the [bank account endpoint](/reference/get-organizations-external-bank-accounts).
+                payoutAmount:
+                  type: object
+                  required:
+                  - value
+                  - currency
+                  description: The amount of cashback that should be paid out to the bank account.
+                  properties:
+                    value:
+                      type: number
+                      description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+                    currency:
+                      type: string
+                      description: The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar.
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cashbackValues:
+                    type: object
+                    required:
+                    - totalEarned
+                    - totalPending
+                    - totalRedeemable
+                    - totalRedeemed
+                    - totalPayout
+                    properties:
+                      totalEarned:
+                        type: object
+                        description: The total amount of cashback earned by the organization.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+                      totalPending:
+                        type: object
+                        description: The total amount of cashback that is pending.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+                      totalRedeemable:
+                        type: object
+                        description: The total amount of cashback that is redeemable.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+                      totalRedeemed:
+                        type: object
+                        description: Represents the total amount of cashback that has been redeemed but not necessarily paid out yet.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+                      totalPayout:
+                        type: object
+                        description: The total amount of cashback that has been paid out to the bank account of the customer as part of the redemption process.
+                        properties:
+                          value:
+                            type: number
+                          currency:
+                            type: string
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /cashbacks/{organizationId}/transactions:
+    post:
+      summary: Get Cashback for Transaction
+      description: Get the cashback amounts for transactions of a specific organization.
+      tags:
+      - Cashback
+      operationId: get-cashback-transactions
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The organization for which the data is requested.
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        description: A list of transaction ids for which the cashback amounts are requested.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - transactionIds
+              properties:
+                transactionIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                pagination:
+                  type: object
+                  properties:
+                    page:
+                      type: integer
+                      description: The page number to return, starting with 0, this counts up to the total number of pages. The total number of pages is determined by the total number of records divided by the limit.
+                    limit:
+                      type: integer
+                      description: The number of records to return per page.
+                    sortBy:
+                      type: object
+                      description: The field to sort by and the direction to sort by.
+                      properties:
+                        field:
+                          type: string
+                          description: The field to sort by.
+                          enum:
+                          - status
+                          - updatedAt
+                          - createdAt
+                          default: createdAt
+                        direction:
+                          type: string
+                          description: The direction to sort by.
+                          enum:
+                          - ASC
+                          - DESC
+                          default: ASC
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - transactionId
+                      - organizationId
+                      - status
+                      - amount
+                      - rate
+                      - createdAt
+                      properties:
+                        transactionId:
+                          type: string
+                          format: uuid
+                          description: The id of the transaction for which the cashback amounts are returned.
+                        organizationId:
+                          type: string
+                          format: uuid
+                          description: The id of the organization for which the cashback amounts are returned.
+                        cardAccountId:
+                          type: string
+                          format: uuid
+                          description: The id of the card account for which the cashback amounts are returned.
+                        status:
+                          type: string
+                          description: The status of the cashback for this transaction.
+                          enum:
+                          - PENDING
+                          - RELEASED
+                        amount:
+                          type: object
+                          description: The cashback amount for this transaction. This can be zero, as long as the [threshold](get-cashback-configuration) is not reached for the organization. Only after the threshold is passed, the cashback amount is above zero.
+                          properties:
+                            value:
+                              type: number
+                            currency:
+                              type: string
+                        rate:
+                          type: number
+                          description: The cashback rate for this transaction as a decimal value. This is the rate that is applied to the transaction amount to calculate the cashback amount. It is always set, even if the cashback amount is zero because the threshold is not reached yet.
+                        createdAt:
+                          type: string
+                          description: The date and time when the cashback was created.
+                          format: date-time
+                        updatedAt:
+                          type:
+                          - string
+                          - 'null'
+                          description: The date and time when the cashback was last updated.
+                          format: date-time
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates whether there is a next page available.
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: The error code
+        exceptionId:
+          type: string
+          format: uuid
+          description: The id of the exception that was thrown
+        message:
+          type: string
+          description: The cause of the error or further explanations on the error
+    CashbackAmountCallback:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        cardAccountId:
+          type: string
+          format: uuid
+        cashbackValues:
+          type: object
+          required:
+          - totalEarned
+          - totalPending
+          - totalRedeemable
+          - totalRedeemed
+          - totalPayout
+          properties:
+            totalEarned:
+              type: object
+              description: The total amount of cashback earned by the organization.
+              properties:
+                value:
+                  type: number
+                currency:
+                  type: string
+            totalPending:
+              type: object
+              description: The total amount of cashback that is pending.
+              properties:
+                value:
+                  type: number
+                currency:
+                  type: string
+            totalRedeemable:
+              type: object
+              description: The total amount of cashback that is redeemable.
+              properties:
+                value:
+                  type: number
+                currency:
+                  type: string
+            totalRedeemed:
+              type: object
+              description: Represents the total amount of cashback that has been redeemed but not necessarily paid out yet.
+              properties:
+                value:
+                  type: number
+                currency:
+                  type: string
+            totalPayout:
+              type: object
+              description: The total amount of cashback that has been paid out to the bank account of the customer as part of the redemption process.
+              properties:
+                value:
+                  type: number
+                currency:
+                  type: string
+    Event:
+      type: object
+      properties:
+        eventType:
+          type: string
+          description: The type of event.
+  requestBodies:
+    CashbackAmountCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/CashbackAmountCallback'
+  responses:
+    '429':
+      description: Too Many Requests. The API consumer has sent too many requests in a given amount of time. Please check our [API guidelines](/docs/pliant-api-guidelines#api-rate-limits).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Detailed description of the error and breached rate limit.
+    '500':
+      description: Internal Server Error. The request was not completed due to an internal error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '401':
+      description: Unauthorized. The API consumer is not authorized to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '400':
+      description: Bad Request. The API consumer sent a malformed request which could not be processed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '403':
+      description: Forbidden. The API consumer is not allowed to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '204':
+      description: No Content. The request was successful, but the system has no content to return. Most likely due to a deactivate feature module for the requested entity.
+    '404':
+      description: Not Found. The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: This API uses oAuth2 with client credentials flow to [obtain the Bearer Token](/docs/authenticated-api-usage).
+      bearerFormat: JWT
+x-provenance:
+  method: searched
+  source: https://partner.getpliant.com/reference
+  harvested: '2026-10-14'
+  tool: harvest-readme-openapi.py
+  note: Assembled verbatim from the OpenAPI definition ReadMe embeds in each operation page of the provider's developer portal; paths and components merged by API title, nothing authored.
+  assembled_from:
+  - https://partner.getpliant.com/reference/activate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/activate-physical-card.md
+  - https://partner.getpliant.com/reference/approve-card-limit-requests.md
+  - https://partner.getpliant.com/reference/approve-card-request.md
+  - https://partner.getpliant.com/reference/assign-project-team.md
+  - https://partner.getpliant.com/reference/assign-to-team.md
+  - https://partner.getpliant.com/reference/batch-update-cards-limits.md
+  - https://partner.getpliant.com/reference/bulk-upsert-subscriptions.md
+  - https://partner.getpliant.com/reference/cancel-onboarding-submission.md
+  - https://partner.getpliant.com/reference/card-pan-and-cvv-pci-vault.md
+  - https://partner.getpliant.com/reference/claim-card-as-copilot.md
+  - https://partner.getpliant.com/reference/create-access-link.md
+  - https://partner.getpliant.com/reference/create-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-and-submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/create-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/create-beneficiary.md
+  - https://partner.getpliant.com/reference/create-card-account-payout.md
+  - https://partner.getpliant.com/reference/create-card-account-subscription.md
+  - https://partner.getpliant.com/reference/create-card-account-transfer.md
+  - https://partner.getpliant.com/reference/create-card-account.md
+  - https://partner.getpliant.com/reference/create-card-control-subscription.md
+  - https://partner.getpliant.com/reference/create-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/create-card-limit-request-subscriptions.md
+  - https://partner.getpliant.com/reference/create-card-limit-requests.md
+  - https://partner.getpliant.com/reference/create-card-request-subscription.md
+  - https://partner.getpliant.com/reference/create-card-request.md
+  - https://partner.getpliant.com/reference/create-card-subscription.md
+  - https://partner.getpliant.com/reference/create-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/create-cashback-subscription.md
+  - https://partner.getpliant.com/reference/create-custom-field-option.md
+  - https://partner.getpliant.com/reference/create-custom-field.md
+  - https://partner.getpliant.com/reference/create-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/create-external-transfer.md
+  - https://partner.getpliant.com/reference/create-lead.md
+  - https://partner.getpliant.com/reference/create-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-organization-subscription.md
+  - https://partner.getpliant.com/reference/create-organization.md
+  - https://partner.getpliant.com/reference/create-payment-subscription.md
+  - https://partner.getpliant.com/reference/create-project.md
+  - https://partner.getpliant.com/reference/create-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/create-receipt-subscription.md
+  - https://partner.getpliant.com/reference/create-statement-subscription.md
+  - https://partner.getpliant.com/reference/create-team.md
+  - https://partner.getpliant.com/reference/create-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-vop-verification.md
+  - https://partner.getpliant.com/reference/deactivate-card-account.md
+  - https://partner.getpliant.com/reference/deactivate-cardholder.md
+  - https://partner.getpliant.com/reference/deactivate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/deactivate-team.md
+  - https://partner.getpliant.com/reference/delete-card-limit-requests.md
+  - https://partner.getpliant.com/reference/delete-card-request.md
+  - https://partner.getpliant.com/reference/delete-custom-field-option.md
+  - https://partner.getpliant.com/reference/delete-custom-field.md
+  - https://partner.getpliant.com/reference/delete-project.md
+  - https://partner.getpliant.com/reference/delete-receipt.md
+  - https://partner.getpliant.com/reference/delete-subscription.md
+  - https://partner.getpliant.com/reference/delete-team.md
+  - https://partner.getpliant.com/reference/delete-transaction-comment.md
+  - https://partner.getpliant.com/reference/enable-pliant-app-access.md
+  - https://partner.getpliant.com/reference/enroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/generate-test-transactions-in-sandbox.md
+  - https://partner.getpliant.com/reference/get-account-entries.md
+  - https://partner.getpliant.com/reference/get-accounting-transactions-batch.md
+  - https://partner.getpliant.com/reference/get-available-cards.md
+  - https://partner.getpliant.com/reference/get-beneficiaries.md
+  - https://partner.getpliant.com/reference/get-beneficiary-details.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-details.md
+  - https://partner.getpliant.com/reference/get-callback-details.md
+  - https://partner.getpliant.com/reference/get-callback-log.md
+  - https://partner.getpliant.com/reference/get-callback-subscriptions.md
+  - https://partner.getpliant.com/reference/get-callback.md
+  - https://partner.getpliant.com/reference/get-card-account-details.md
+  - https://partner.getpliant.com/reference/get-card-accounts-available-currencies.md
+  - https://partner.getpliant.com/reference/get-card-accounts-summary.md
+  - https://partner.getpliant.com/reference/get-card-accounts.md
+  - https://partner.getpliant.com/reference/get-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-countries.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-currencies.md
+  - https://partner.getpliant.com/reference/get-card-limit-request-detail.md
+  - https://partner.getpliant.com/reference/get-card-pin.md
+  - https://partner.getpliant.com/reference/get-card-request-details.md
+  - https://partner.getpliant.com/reference/get-card-requests.md
+  - https://partner.getpliant.com/reference/get-cardholder-details.md
+  - https://partner.getpliant.com/reference/get-cards.md
+  - https://partner.getpliant.com/reference/get-cashback-amounts.md
+  - https://partner.getpliant.com/reference/get-cashback-configuration.md
+  - https://partner.getpliant.com/reference/get-cashback-history.md
+  - https://partner.getpliant.com/reference/get-cashback-receipt.md
+  - https://partner.getpliant.com/reference/get-cashback-transactions.md
+  - https://partner.getpliant.com/reference/get-custom-field-options.md
+  - https://partner.getpliant.com/reference/get-custom-fields.md
+  - https://partner.getpliant.com/reference/get-external-transfer-details.md
+  - https://partner.getpliant.com/reference/get-external-transfers.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization-details.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization.md
+  - https://partner.getpliant.com/reference/get-multiple-card-details.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-activity-codes.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-industry.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission-document.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission.md
+  - https://partner.getpliant.com/reference/get-organization-details.md
+  - https://partner.getpliant.com/reference/get-organization-external-bank-account.md
+  - https://partner.getpliant.com/reference/get-organization-risk-status.md
+  - https://partner.getpliant.com/reference/get-organizations-external-bank-accounts.md
+  - https://partner.getpliant.com/reference/get-otp-for-pci-widget.md
+  - https://partner.getpliant.com/reference/get-partner-signing-jwks.md
+  - https://partner.getpliant.com/reference/get-payment-program.md
+  - https://partner.getpliant.com/reference/get-payments-detail.md
+  - https://partner.getpliant.com/reference/get-payments.md
+  - https://partner.getpliant.com/reference/get-project.md
+  - https://partner.getpliant.com/reference/get-projects.md
+  - https://partner.getpliant.com/reference/get-receipt-automatcher-status.md
+  - https://partner.getpliant.com/reference/get-receipt-detail.md
+  - https://partner.getpliant.com/reference/get-receipts.md
+  - https://partner.getpliant.com/reference/get-single-card-details.md
+  - https://partner.getpliant.com/reference/get-statement-csv.md
+  - https://partner.getpliant.com/reference/get-statement-detail.md
+  - https://partner.getpliant.com/reference/get-statementpdf.md
+  - https://partner.getpliant.com/reference/get-statements.md
+  - https://partner.getpliant.com/reference/get-team.md
+  - https://partner.getpliant.com/reference/get-teams.md
+  - https://partner.getpliant.com/reference/get-transactions-detail-batch.md
+  - https://partner.getpliant.com/reference/get-transactions-detail.md
+  - https://partner.getpliant.com/reference/get-transactions.md
+  - https://partner.getpliant.com/reference/get-vop-verification.md
+  - https://partner.getpliant.com/reference/invite-cardholders.md
+  - https://partner.getpliant.com/reference/invite-owner.md
+  - https://partner.getpliant.com/reference/issue-card-instant-with-pci.md
+  - https://partner.getpliant.com/reference/issue-card-instant.md
+  - https://partner.getpliant.com/reference/issue-card.md
+  - https://partner.getpliant.com/reference/list-card-limit-requests.md
+  - https://partner.getpliant.com/reference/list-cardholders.md
+  - https://partner.getpliant.com/reference/list-identity-verifications.md
+  - https://partner.getpliant.com/reference/list-onboarding-submissions.md
+  - https://partner.getpliant.com/reference/list-organizations.md
+  - https://partner.getpliant.com/reference/load-cards-batch.md
+  - https://partner.getpliant.com/reference/lock-card.md
+  - https://partner.getpliant.com/reference/metadata-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/reassign-platform-fee-card.md
+  - https://partner.getpliant.com/reference/receipt-as-merged-pdf.md
+  - https://partner.getpliant.com/reference/receipt-as-pdf.md
+  - https://partner.getpliant.com/reference/receipt-original.md
+  - https://partner.getpliant.com/reference/receipt-thumbnail.md
+  - https://partner.getpliant.com/reference/redeem-cashback.md
+  - https://partner.getpliant.com/reference/register-cardholders.md
+  - https://partner.getpliant.com/reference/reject-card-limit-requests.md
+  - https://partner.getpliant.com/reference/reject-card-request.md
+  - https://partner.getpliant.com/reference/remove-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/remove-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-account-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-control-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-limit-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/remove-cards-subscription.md
+  - https://partner.getpliant.com/reference/remove-cashback-subscription.md
+  - https://partner.getpliant.com/reference/remove-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/remove-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/remove-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/remove-organization-subscription.md
+  - https://partner.getpliant.com/reference/remove-payment-subscription.md
+  - https://partner.getpliant.com/reference/remove-pliant-app-access.md
+  - https://partner.getpliant.com/reference/remove-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/remove-receipt-subscription.md
+  - https://partner.getpliant.com/reference/remove-statement-subscription.md
+  - https://partner.getpliant.com/reference/remove-transaction-subscription.md
+  - https://partner.getpliant.com/reference/replace-card.md
+  - https://partner.getpliant.com/reference/resend-callbacks.md
+  - https://partner.getpliant.com/reference/revoke-access-link.md
+  - https://partner.getpliant.com/reference/search-callbacks.md
+  - https://partner.getpliant.com/reference/simulate-prefund-payment.md
+  - https://partner.getpliant.com/reference/simulate-transaction-status-transition.md
+  - https://partner.getpliant.com/reference/start-identity-verification.md
+  - https://partner.getpliant.com/reference/stop-identity-verification.md
+  - https://partner.getpliant.com/reference/submit-external-transfer.md
+  - https://partner.getpliant.com/reference/submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/terminate-card.md
+  - https://partner.getpliant.com/reference/unassign-from-team.md
+  - https://partner.getpliant.com/reference/unassign-project-team.md
+  - https://partner.getpliant.com/reference/unenroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/unload-cards-batch.md
+  - https://partner.getpliant.com/reference/unlock-card.md
+  - https://partner.getpliant.com/reference/update-accounting-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-beneficiary-activation.md
+  - https://partner.getpliant.com/reference/update-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/update-beneficiary.md
+  - https://partner.getpliant.com/reference/update-card-account.md
+  - https://partner.getpliant.com/reference/update-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/update-card-copilots.md
+  - https://partner.getpliant.com/reference/update-card-label.md
+  - https://partner.getpliant.com/reference/update-card-limit.md
+  - https://partner.getpliant.com/reference/update-card-validity-period.md
+  - https://partner.getpliant.com/reference/update-card.md
+  - https://partner.getpliant.com/reference/update-cardholders.md
+  - https://partner.getpliant.com/reference/update-custom-field-option.md
+  - https://partner.getpliant.com/reference/update-custom-field.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-card.md
+  - https://partner.getpliant.com/reference/update-external-transfer-status.md
+  - https://partner.getpliant.com/reference/update-external-transfer.md
+  - https://partner.getpliant.com/reference/update-organization.md
+  - https://partner.getpliant.com/reference/update-partner-settings.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-project.md
+  - https://partner.getpliant.com/reference/update-team.md
+  - https://partner.getpliant.com/reference/update-transaction-category.md
+  - https://partner.getpliant.com/reference/update-transaction-comment.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-transaction-receipt-upload.md
+  - https://partner.getpliant.com/reference/upload-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/upload-receipt.md
+  - https://partner.getpliant.com/reference/validate-onboarding-submission.md
+  merge:
+    pages: 225
+    deduped: 1508
+    conflicts_kept_first: 0

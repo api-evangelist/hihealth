@@ -1,0 +1,1269 @@
+openapi: 3.2.0
+info:
+  contact:
+    name: API Support
+    email: support@getpliant.com
+    url: https://www.getpliant.com
+  title: Pliant Partner External Transfers API
+  description: Pliant Partner API
+  version: 2.1.0
+  license:
+    name: MIT
+    url: https://opensource.org/license/MIT
+servers:
+- url: https://partner-api.getpliant.com/api
+  description: Pliant Production Server
+- url: https://sandbox.partner-api.getpliant.com/api
+  description: Pliant Sandbox Server
+- url: https://pci-api.getpliant.com
+  description: PCI Vault Production Server
+- url: https://pci-sandbox.partner-api.getpliant.com
+  description: PCI Vault Sandbox Server
+security:
+- bearerAuth: []
+tags:
+- name: External Transfers
+  description: This tag is for operations related to external transfers
+paths:
+  /external-transfers:
+    get:
+      summary: List External Transfers
+      description: 'Query external transfers for a specific organization. External transfers are payments made to beneficiaries outside of your organization.
+
+
+        You can filter transfers by various criteria including beneficiary, source card account, transfer method, status, and date ranges.'
+      tags:
+      - External Transfers
+      operationId: get-external-transfers
+      parameters:
+      - name: organizationId
+        in: query
+        description: The organization for which the external transfers are requested.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page number. Starts from '0'.
+        required: false
+        schema:
+          type: integer
+          default: 0
+      - name: limit
+        in: query
+        description: Client suggested limit to restrict the number of entries on a page.
+        required: false
+        schema:
+          type: integer
+          default: 100
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                      - $ref: '#/components/schemas/ExternalTransfer'
+                      - type: object
+                        properties:
+                          createdBy:
+                            type: string
+                            description: The user who created the transfer.
+                          beneficiaryName:
+                            type: string
+                            description: The name of the beneficiary.
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates whether there is a next page available.
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      summary: Create External Transfer
+      description: 'Create a new external transfer for the specified organization.
+
+
+        External transfers are payments made to beneficiaries outside of your organization. You must provide the beneficiary information, transfer amount, and transfer method. The transfer will initially be created in DRAFT status and can be modified until submitted for processing.'
+      tags:
+      - External Transfers
+      operationId: create-external-transfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalTransferCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalTransfer'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /external-transfers/subscription:
+    post:
+      summary: 'Callback: Add/Update'
+      description: Subscribe to callbacks for this entity or change an existing callback.
+      tags:
+      - External Transfers
+      operationId: create-external-transfer-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callbackUrl:
+                  type: string
+                  format: uri
+                  example: https://myserver.com/send/callback/here
+                  description: The URL to send the callback to. Must be a valid and reachable URL. We do some basic validation to ensure the URL is syntactically correct and reachable for Pliant. Only HTTPS URLs are supported.
+                eventTypes:
+                  type: array
+                  description: The event types to subscribe to.
+                  items:
+                    type: string
+                    enum:
+                    - EXTERNAL_TRANSFER_CREATED
+                    - EXTERNAL_TRANSFER_STATUS_CHANGED
+                    - EXTERNAL_TRANSFER_DETAILS_UPDATED
+              required:
+              - callbackUrl
+              - eventTypes
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+      callbacks:
+        externalTransferCreated:
+          '{$request.body#/callbackUrl}':
+            post:
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/ExternalTransferCreatedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        externalTransferStatusChanged:
+          '{$request.body#/callbackUrl}':
+            post:
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/ExternalTransferStatusChangedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        externalTransferDetailsUpdated:
+          '{$request.body#/callbackUrl}':
+            post:
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/ExternalTransferDetailsUpdatedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+    delete:
+      summary: 'Callback: Remove'
+      description: Remove a callback subscription for this entity.
+      tags:
+      - External Transfers
+      operationId: remove-external-transfer-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventTypes:
+                  type: array
+                  description: The event types to unsubscribe from.
+                  items:
+                    type: string
+                    enum:
+                    - EXTERNAL_TRANSFER_CREATED
+                    - EXTERNAL_TRANSFER_STATUS_CHANGED
+                    - EXTERNAL_TRANSFER_DETAILS_UPDATED
+              required:
+              - eventTypes
+      responses:
+        '200':
+          description: Ok
+  /external-transfers/{externalTransferId}:
+    get:
+      summary: Get External Transfer Details
+      description: Get detailed information about a specific external transfer.
+      tags:
+      - External Transfers
+      operationId: get-external-transfer-details
+      parameters:
+      - name: externalTransferId
+        in: path
+        description: The unique identifier of the external transfer.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalTransfer'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    put:
+      summary: Update External Transfer
+      description: 'Update an existing external transfer. You can modify the transfer details including beneficiary, amount, transfer method, and other properties.
+
+
+        Note that transfers can only be modified when they are in DRAFT status. Once submitted for processing, most fields become read-only.'
+      tags:
+      - External Transfers
+      operationId: update-external-transfer
+      parameters:
+      - name: externalTransferId
+        in: path
+        description: The unique identifier of the external transfer.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalTransferUpdateRequest'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalTransfer'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /external-transfers/{externalTransferId}/status:
+    patch:
+      summary: Update External Transfer Status
+      description: 'Update the status of an existing external transfer. This endpoint allows you to change the transfer status, for example to approve, reject, or mark as paid.
+
+
+        The available status transitions depend on the current status of the transfer and your organization''s configuration.'
+      tags:
+      - External Transfers
+      operationId: update-external-transfer-status
+      parameters:
+      - name: externalTransferId
+        in: path
+        description: The unique identifier of the external transfer.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalTransferStatusUpdateRequest'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalTransfer'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /external-transfers/{externalTransferId}/submission:
+    post:
+      summary: Submit External Transfer
+      description: 'Submit an external transfer for processing. This endpoint moves the transfer from DRAFT status to the next stage in the workflow, typically NEEDS_APPROVAL or COMPLIANCE_CHECK depending on your organization''s configuration.
+
+
+        Once submitted, the transfer can no longer be modified and will proceed through the approval and compliance workflow.'
+      tags:
+      - External Transfers
+      operationId: submit-external-transfer
+      parameters:
+      - name: externalTransferId
+        in: path
+        description: The unique identifier of the external transfer to submit.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalTransfer'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  requestBodies:
+    ExternalTransferCreatedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/ExternalTransferCallback'
+    ExternalTransferDetailsUpdatedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/ExternalTransferCallback'
+    ExternalTransferStatusChangedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/ExternalTransferCallback'
+  schemas:
+    Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: The error code
+        exceptionId:
+          type: string
+          format: uuid
+          description: The id of the exception that was thrown
+        message:
+          type: string
+          description: The cause of the error or further explanations on the error
+    ExternalTransferCallback:
+      type: object
+      properties:
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: 'The type of event. Can be one of: `EXTERNAL_TRANSFER_CREATED`, `EXTERNAL_TRANSFER_STATUS_CHANGED`, or `EXTERNAL_TRANSFER_DETAILS_UPDATED`.
+
+            '
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the external transfer.
+        organizationId:
+          type: string
+          format: uuid
+          description: The organization to which the external transfer belongs.
+        teamId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The team associated with the external transfer.
+        memberId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The member who created the external transfer.
+        beneficiaryId:
+          type: string
+          format: uuid
+          description: The beneficiary who will receive the transfer.
+        beneficiaryPaymentDetailId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The payment details for the beneficiary.
+        sourceCardAccountId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The card account from which the transfer will be made.
+        transferAmount:
+          type:
+          - object
+          - 'null'
+          description: The amount of the transfer.
+          properties:
+            value:
+              type: number
+              description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+            currency:
+              type: string
+              description: The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar.
+        transferMethod:
+          type:
+          - string
+          - 'null'
+          enum:
+          - SEPA_CREDIT_TRANSFER
+          - INSTANT_CREDIT_TRANSFER
+          description: "The transfer method for the external transfer. Whether it is present depends on the transfer currency:\n - `SEPA_CREDIT_TRANSFER`: Used for `EUR` transfers.\n - `INSTANT_CREDIT_TRANSFER`: Used for `SEK` and `DKK` transfers.\n\nFor all other supported currencies (`AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON`) this field is not set (null / omitted) because the rail is selected automatically.\n"
+        status:
+          type: string
+          enum:
+          - DRAFT
+          - NEEDS_APPROVAL
+          - APPROVED
+          - COMPLIANCE_CHECK
+          - COMPLIANCE_PASSED
+          - COMPLIANCE_REVIEW
+          - PAYMENT_IN_PROGRESS
+          - PAID
+          - FAILED
+          description: 'The current status of the external transfer. It can be one of the following values:
+
+            - `DRAFT`: Transfer is in draft state and can be modified
+
+            - `NEEDS_APPROVAL`: Transfer requires approval before processing
+
+            - `APPROVED`: Transfer has been approved and is ready for processing
+
+            - `COMPLIANCE_CHECK`: Transfer is undergoing compliance checks
+
+            - `COMPLIANCE_PASSED`: Transfer has passed compliance checks
+
+            - `COMPLIANCE_REVIEW`: Transfer is under compliance review
+
+            - `PAYMENT_IN_PROGRESS`: Transfer is currently being processed
+
+            - `PAID`: Transfer has been successfully completed
+
+            - `FAILED`: Transfer has failed
+
+            '
+        purpose:
+          type:
+          - string
+          - 'null'
+          description: The purpose or description of the transfer.
+        invoiceNumber:
+          type:
+          - string
+          - 'null'
+          description: The invoice number associated with the transfer.
+        invoiceDate:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: The date of the invoice.
+        dueDate:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: The due date for the transfer.
+        transferTime:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: The scheduled time for the transfer.
+        approvedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: The date and time when the transfer was approved.
+        createdAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: The date and time when the transfer was created.
+    ExternalTransferCreateRequest:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+          description: The organization for which the external transfer is being created.
+        teamId:
+          type: string
+          format: uuid
+          description: The team associated with the external transfer.
+        beneficiaryId:
+          type: string
+          format: uuid
+          description: The beneficiary who will receive the transfer.
+        beneficiaryPaymentDetailId:
+          type: string
+          format: uuid
+          description: The payment details for the beneficiary.
+        sourceCardAccountId:
+          type: string
+          format: uuid
+          description: The card account from which the transfer will be made.
+        transferAmount:
+          type: object
+          description: The amount of the transfer.
+          properties:
+            value:
+              type: number
+              description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+            currency:
+              type: string
+              description: 'The currency of the monetary amount in ISO 4217 format. Same-currency transfers support the following currencies, with the following `transferMethod` rules:
+
+                - `EUR`: `SEPA_CREDIT_TRANSFER`
+
+                - `SEK`, `DKK`: `INSTANT_CREDIT_TRANSFER`
+
+                - `AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON`: omit `transferMethod`
+
+                '
+        transferMethod:
+          type: string
+          enum:
+          - SEPA_CREDIT_TRANSFER
+          - INSTANT_CREDIT_TRANSFER
+          description: 'The transfer method for the external transfer. Whether it is required depends on the transfer currency:
+
+            - `SEPA_CREDIT_TRANSFER`: SEPA Standard Credit Transfer (SCT). Required for `EUR` transfers.
+
+            - `INSTANT_CREDIT_TRANSFER`: SEPA Instant Credit Transfer. Required for `SEK` and `DKK` transfers.
+
+
+            For all other supported currencies (`AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON`) this field must be omitted — the rail is selected automatically and sending a value is rejected.
+
+            '
+        purpose:
+          type: string
+          description: The purpose or description of the transfer.
+        invoiceNumber:
+          type: string
+          description: The invoice number associated with the transfer.
+        invoiceDate:
+          type: string
+          format: date
+          description: The date of the invoice.
+        dueDate:
+          type: string
+          format: date
+          description: The due date for the transfer.
+        transferTime:
+          type: string
+          format: date-time
+          description: The scheduled time for the transfer.
+        vopId:
+          type: string
+          format: uuid
+          description: 'The unique identifier of a completed Verification of Payee (VoP) check. Required for `SEPA_CREDIT_TRANSFER` transfers in accordance with the Verification of Payee regulation.
+
+
+            Obtain this value by calling `POST /vop/verification` before creating the transfer. The verification must have `status: ACTIVE` (valid for 60 minutes after creation).
+
+            '
+      required:
+      - organizationId
+      - beneficiaryId
+    ExternalTransfer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the external transfer.
+        organizationId:
+          type: string
+          format: uuid
+          description: The organization to which the external transfer belongs.
+        teamId:
+          type: string
+          format: uuid
+          description: The team associated with the external transfer.
+        memberId:
+          type: string
+          format: uuid
+          description: The member who created the external transfer.
+        beneficiaryId:
+          type: string
+          format: uuid
+          description: The beneficiary who will receive the transfer.
+        beneficiaryPaymentDetailId:
+          type: string
+          format: uuid
+          description: The payment details for the beneficiary.
+        sourceCardAccountId:
+          type: string
+          format: uuid
+          description: The card account from which the transfer will be made.
+        transferAmount:
+          type: object
+          description: The amount of the transfer.
+          properties:
+            value:
+              type: number
+              description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+            currency:
+              type: string
+              description: The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar.
+        transferMethod:
+          type: string
+          enum:
+          - SEPA_CREDIT_TRANSFER
+          - INSTANT_CREDIT_TRANSFER
+          description: "The transfer method for the external transfer. Whether it is present depends on the transfer currency:\n- `SEPA_CREDIT_TRANSFER`: Used for `EUR` transfers.\n- `INSTANT_CREDIT_TRANSFER`: Used for `SEK` and `DKK` transfers.\n\n      For all other supported currencies (`AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON`) this field is not set (null / omitted) because the rail is selected automatically.\n"
+        status:
+          type: string
+          enum:
+          - DRAFT
+          - NEEDS_APPROVAL
+          - APPROVED
+          - COMPLIANCE_CHECK
+          - COMPLIANCE_PASSED
+          - COMPLIANCE_REVIEW
+          - PAYMENT_IN_PROGRESS
+          - PAID
+          - FAILED
+          description: 'The current status of the external transfer. It can be one of the following values:
+
+            - `DRAFT`: Transfer is in draft state and can be modified
+
+            - `NEEDS_APPROVAL`: Transfer requires approval before processing
+
+            - `APPROVED`: Transfer has been approved and is ready for processing
+
+            - `COMPLIANCE_CHECK`: Transfer is undergoing compliance checks
+
+            - `COMPLIANCE_PASSED`: Transfer has passed compliance checks
+
+            - `COMPLIANCE_REVIEW`: Transfer is under compliance review
+
+            - `PAYMENT_IN_PROGRESS`: Transfer is currently being processed
+
+            - `PAID`: Transfer has been successfully completed
+
+            - `FAILED`: Transfer has failed
+
+            '
+        purpose:
+          type: string
+          description: The purpose or description of the transfer.
+        invoiceNumber:
+          type: string
+          description: The invoice number associated with the transfer.
+        invoiceDate:
+          type: string
+          format: date
+          description: The date of the invoice.
+        dueDate:
+          type: string
+          format: date
+          description: The due date for the transfer.
+        transferTime:
+          type: string
+          format: date-time
+          description: The scheduled time for the transfer.
+        approvedAt:
+          type: string
+          format: date-time
+          description: The date and time when the transfer was approved.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time when the transfer was created.
+        vop:
+          type:
+          - object
+          - 'null'
+          description: 'Verification of Payee (VoP) result for the transfer. Null when VoP was not performed.
+
+            '
+          properties:
+            vopResult:
+              type: string
+              description: 'The outcome of the Verification of Payee (VoP). It can be one of the following values:
+
+                - `MATCH`: The payee name fully matches the account holder.
+
+                - `CLOSE_MATCH`: The payee name closely matches the account holder.
+
+                - `NO_MATCH`: The payee name does not match the account holder.
+
+                - `UNAVAILABLE`: Verification could not be performed.
+
+                '
+            vopExternalVerificationId:
+              type: string
+              format: uuid
+              description: The external identifier of the Verification of Payee (VoP).
+            vopExpiresAt:
+              type: string
+              format: date-time
+              description: The date and time when the Verification of Payee result expires.
+    Event:
+      type: object
+      properties:
+        eventType:
+          type: string
+          description: The type of event.
+    ExternalTransferUpdateRequest:
+      type: object
+      properties:
+        beneficiaryId:
+          type: string
+          format: uuid
+          description: The beneficiary who will receive the transfer.
+        beneficiaryPaymentDetailId:
+          type: string
+          format: uuid
+          description: The payment details for the beneficiary.
+        sourceCardAccountId:
+          type: string
+          format: uuid
+          description: The card account from which the transfer will be made.
+        transferAmount:
+          type: object
+          description: The amount of the transfer.
+          properties:
+            value:
+              type: number
+              description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+            currency:
+              type: string
+              description: 'The currency of the monetary amount in ISO 4217 format. Same-currency transfers support the following currencies, with the following `transferMethod` rules:
+
+                - `EUR`: `SEPA_CREDIT_TRANSFER`
+
+                - `SEK`, `DKK`: `INSTANT_CREDIT_TRANSFER`
+
+                - `AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON`: omit `transferMethod`
+
+                '
+        transferMethod:
+          type: string
+          enum:
+          - SEPA_CREDIT_TRANSFER
+          - INSTANT_CREDIT_TRANSFER
+          description: 'The transfer method for the external transfer. Whether it is required depends on the transfer currency:
+
+            - `SEPA_CREDIT_TRANSFER`: SEPA Standard Credit Transfer (SCT). Required for `EUR` transfers.
+
+            - `INSTANT_CREDIT_TRANSFER`: SEPA Instant Credit Transfer. Required for `SEK` and `DKK` transfers.
+
+
+            For all other supported currencies (`AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON`) this field must be omitted — the rail is selected automatically and sending a value is rejected.
+
+            '
+        purpose:
+          type: string
+          description: The purpose or description of the transfer.
+        invoiceNumber:
+          type: string
+          description: The invoice number associated with the transfer.
+        invoiceDate:
+          type: string
+          format: date
+          description: The date of the invoice.
+        dueDate:
+          type: string
+          format: date
+          description: The due date for the transfer.
+        transferTime:
+          type: string
+          format: date-time
+          description: The scheduled time for the transfer.
+      required:
+      - beneficiaryId
+    ExternalTransferStatusUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - DRAFT
+          - NEEDS_APPROVAL
+          - APPROVED
+          - COMPLIANCE_CHECK
+          - COMPLIANCE_PASSED
+          - COMPLIANCE_REVIEW
+          - PAYMENT_IN_PROGRESS
+          - PAID
+          - FAILED
+          description: 'The new status for the external transfer. It can be one of the following values:
+
+            - `DRAFT`: Transfer is in draft state and can be modified
+
+            - `NEEDS_APPROVAL`: Transfer requires approval before processing
+
+            - `APPROVED`: Transfer has been approved and is ready for processing
+
+            - `COMPLIANCE_CHECK`: Transfer is undergoing compliance checks
+
+            - `COMPLIANCE_PASSED`: Transfer has passed compliance checks
+
+            - `COMPLIANCE_REVIEW`: Transfer is under compliance review
+
+            - `PAYMENT_IN_PROGRESS`: Transfer is currently being processed
+
+            - `PAID`: Transfer has been successfully completed
+
+            - `FAILED`: Transfer has failed
+
+            '
+      required:
+      - status
+  responses:
+    '409':
+      description: Conflict. The request could not be completed due to a conflict with the current state of the resource. You may retry the call.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '429':
+      description: Too Many Requests. The API consumer has sent too many requests in a given amount of time. Please check our [API guidelines](/docs/pliant-api-guidelines#api-rate-limits).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Detailed description of the error and breached rate limit.
+    '500':
+      description: Internal Server Error. The request was not completed due to an internal error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '401':
+      description: Unauthorized. The API consumer is not authorized to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '400':
+      description: Bad Request. The API consumer sent a malformed request which could not be processed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '403':
+      description: Forbidden. The API consumer is not allowed to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '404':
+      description: Not Found. The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: This API uses oAuth2 with client credentials flow to [obtain the Bearer Token](/docs/authenticated-api-usage).
+      bearerFormat: JWT
+x-provenance:
+  method: searched
+  source: https://partner.getpliant.com/reference
+  harvested: '2026-10-14'
+  tool: harvest-readme-openapi.py
+  note: Assembled verbatim from the OpenAPI definition ReadMe embeds in each operation page of the provider's developer portal; paths and components merged by API title, nothing authored.
+  assembled_from:
+  - https://partner.getpliant.com/reference/activate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/activate-physical-card.md
+  - https://partner.getpliant.com/reference/approve-card-limit-requests.md
+  - https://partner.getpliant.com/reference/approve-card-request.md
+  - https://partner.getpliant.com/reference/assign-project-team.md
+  - https://partner.getpliant.com/reference/assign-to-team.md
+  - https://partner.getpliant.com/reference/batch-update-cards-limits.md
+  - https://partner.getpliant.com/reference/bulk-upsert-subscriptions.md
+  - https://partner.getpliant.com/reference/cancel-onboarding-submission.md
+  - https://partner.getpliant.com/reference/card-pan-and-cvv-pci-vault.md
+  - https://partner.getpliant.com/reference/claim-card-as-copilot.md
+  - https://partner.getpliant.com/reference/create-access-link.md
+  - https://partner.getpliant.com/reference/create-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-and-submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/create-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/create-beneficiary.md
+  - https://partner.getpliant.com/reference/create-card-account-payout.md
+  - https://partner.getpliant.com/reference/create-card-account-subscription.md
+  - https://partner.getpliant.com/reference/create-card-account-transfer.md
+  - https://partner.getpliant.com/reference/create-card-account.md
+  - https://partner.getpliant.com/reference/create-card-control-subscription.md
+  - https://partner.getpliant.com/reference/create-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/create-card-limit-request-subscriptions.md
+  - https://partner.getpliant.com/reference/create-card-limit-requests.md
+  - https://partner.getpliant.com/reference/create-card-request-subscription.md
+  - https://partner.getpliant.com/reference/create-card-request.md
+  - https://partner.getpliant.com/reference/create-card-subscription.md
+  - https://partner.getpliant.com/reference/create-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/create-cashback-subscription.md
+  - https://partner.getpliant.com/reference/create-custom-field-option.md
+  - https://partner.getpliant.com/reference/create-custom-field.md
+  - https://partner.getpliant.com/reference/create-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/create-external-transfer.md
+  - https://partner.getpliant.com/reference/create-lead.md
+  - https://partner.getpliant.com/reference/create-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-organization-subscription.md
+  - https://partner.getpliant.com/reference/create-organization.md
+  - https://partner.getpliant.com/reference/create-payment-subscription.md
+  - https://partner.getpliant.com/reference/create-project.md
+  - https://partner.getpliant.com/reference/create-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/create-receipt-subscription.md
+  - https://partner.getpliant.com/reference/create-statement-subscription.md
+  - https://partner.getpliant.com/reference/create-team.md
+  - https://partner.getpliant.com/reference/create-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-vop-verification.md
+  - https://partner.getpliant.com/reference/deactivate-card-account.md
+  - https://partner.getpliant.com/reference/deactivate-cardholder.md
+  - https://partner.getpliant.com/reference/deactivate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/deactivate-team.md
+  - https://partner.getpliant.com/reference/delete-card-limit-requests.md
+  - https://partner.getpliant.com/reference/delete-card-request.md
+  - https://partner.getpliant.com/reference/delete-custom-field-option.md
+  - https://partner.getpliant.com/reference/delete-custom-field.md
+  - https://partner.getpliant.com/reference/delete-project.md
+  - https://partner.getpliant.com/reference/delete-receipt.md
+  - https://partner.getpliant.com/reference/delete-subscription.md
+  - https://partner.getpliant.com/reference/delete-team.md
+  - https://partner.getpliant.com/reference/delete-transaction-comment.md
+  - https://partner.getpliant.com/reference/enable-pliant-app-access.md
+  - https://partner.getpliant.com/reference/enroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/generate-test-transactions-in-sandbox.md
+  - https://partner.getpliant.com/reference/get-account-entries.md
+  - https://partner.getpliant.com/reference/get-accounting-transactions-batch.md
+  - https://partner.getpliant.com/reference/get-available-cards.md
+  - https://partner.getpliant.com/reference/get-beneficiaries.md
+  - https://partner.getpliant.com/reference/get-beneficiary-details.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-details.md
+  - https://partner.getpliant.com/reference/get-callback-details.md
+  - https://partner.getpliant.com/reference/get-callback-log.md
+  - https://partner.getpliant.com/reference/get-callback-subscriptions.md
+  - https://partner.getpliant.com/reference/get-callback.md
+  - https://partner.getpliant.com/reference/get-card-account-details.md
+  - https://partner.getpliant.com/reference/get-card-accounts-available-currencies.md
+  - https://partner.getpliant.com/reference/get-card-accounts-summary.md
+  - https://partner.getpliant.com/reference/get-card-accounts.md
+  - https://partner.getpliant.com/reference/get-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-countries.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-currencies.md
+  - https://partner.getpliant.com/reference/get-card-limit-request-detail.md
+  - https://partner.getpliant.com/reference/get-card-pin.md
+  - https://partner.getpliant.com/reference/get-card-request-details.md
+  - https://partner.getpliant.com/reference/get-card-requests.md
+  - https://partner.getpliant.com/reference/get-cardholder-details.md
+  - https://partner.getpliant.com/reference/get-cards.md
+  - https://partner.getpliant.com/reference/get-cashback-amounts.md
+  - https://partner.getpliant.com/reference/get-cashback-configuration.md
+  - https://partner.getpliant.com/reference/get-cashback-history.md
+  - https://partner.getpliant.com/reference/get-cashback-receipt.md
+  - https://partner.getpliant.com/reference/get-cashback-transactions.md
+  - https://partner.getpliant.com/reference/get-custom-field-options.md
+  - https://partner.getpliant.com/reference/get-custom-fields.md
+  - https://partner.getpliant.com/reference/get-external-transfer-details.md
+  - https://partner.getpliant.com/reference/get-external-transfers.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization-details.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization.md
+  - https://partner.getpliant.com/reference/get-multiple-card-details.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-activity-codes.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-industry.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission-document.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission.md
+  - https://partner.getpliant.com/reference/get-organization-details.md
+  - https://partner.getpliant.com/reference/get-organization-external-bank-account.md
+  - https://partner.getpliant.com/reference/get-organization-risk-status.md
+  - https://partner.getpliant.com/reference/get-organizations-external-bank-accounts.md
+  - https://partner.getpliant.com/reference/get-otp-for-pci-widget.md
+  - https://partner.getpliant.com/reference/get-partner-signing-jwks.md
+  - https://partner.getpliant.com/reference/get-payment-program.md
+  - https://partner.getpliant.com/reference/get-payments-detail.md
+  - https://partner.getpliant.com/reference/get-payments.md
+  - https://partner.getpliant.com/reference/get-project.md
+  - https://partner.getpliant.com/reference/get-projects.md
+  - https://partner.getpliant.com/reference/get-receipt-automatcher-status.md
+  - https://partner.getpliant.com/reference/get-receipt-detail.md
+  - https://partner.getpliant.com/reference/get-receipts.md
+  - https://partner.getpliant.com/reference/get-single-card-details.md
+  - https://partner.getpliant.com/reference/get-statement-csv.md
+  - https://partner.getpliant.com/reference/get-statement-detail.md
+  - https://partner.getpliant.com/reference/get-statementpdf.md
+  - https://partner.getpliant.com/reference/get-statements.md
+  - https://partner.getpliant.com/reference/get-team.md
+  - https://partner.getpliant.com/reference/get-teams.md
+  - https://partner.getpliant.com/reference/get-transactions-detail-batch.md
+  - https://partner.getpliant.com/reference/get-transactions-detail.md
+  - https://partner.getpliant.com/reference/get-transactions.md
+  - https://partner.getpliant.com/reference/get-vop-verification.md
+  - https://partner.getpliant.com/reference/invite-cardholders.md
+  - https://partner.getpliant.com/reference/invite-owner.md
+  - https://partner.getpliant.com/reference/issue-card-instant-with-pci.md
+  - https://partner.getpliant.com/reference/issue-card-instant.md
+  - https://partner.getpliant.com/reference/issue-card.md
+  - https://partner.getpliant.com/reference/list-card-limit-requests.md
+  - https://partner.getpliant.com/reference/list-cardholders.md
+  - https://partner.getpliant.com/reference/list-identity-verifications.md
+  - https://partner.getpliant.com/reference/list-onboarding-submissions.md
+  - https://partner.getpliant.com/reference/list-organizations.md
+  - https://partner.getpliant.com/reference/load-cards-batch.md
+  - https://partner.getpliant.com/reference/lock-card.md
+  - https://partner.getpliant.com/reference/metadata-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/reassign-platform-fee-card.md
+  - https://partner.getpliant.com/reference/receipt-as-merged-pdf.md
+  - https://partner.getpliant.com/reference/receipt-as-pdf.md
+  - https://partner.getpliant.com/reference/receipt-original.md
+  - https://partner.getpliant.com/reference/receipt-thumbnail.md
+  - https://partner.getpliant.com/reference/redeem-cashback.md
+  - https://partner.getpliant.com/reference/register-cardholders.md
+  - https://partner.getpliant.com/reference/reject-card-limit-requests.md
+  - https://partner.getpliant.com/reference/reject-card-request.md
+  - https://partner.getpliant.com/reference/remove-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/remove-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-account-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-control-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-limit-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/remove-cards-subscription.md
+  - https://partner.getpliant.com/reference/remove-cashback-subscription.md
+  - https://partner.getpliant.com/reference/remove-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/remove-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/remove-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/remove-organization-subscription.md
+  - https://partner.getpliant.com/reference/remove-payment-subscription.md
+  - https://partner.getpliant.com/reference/remove-pliant-app-access.md
+  - https://partner.getpliant.com/reference/remove-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/remove-receipt-subscription.md
+  - https://partner.getpliant.com/reference/remove-statement-subscription.md
+  - https://partner.getpliant.com/reference/remove-transaction-subscription.md
+  - https://partner.getpliant.com/reference/replace-card.md
+  - https://partner.getpliant.com/reference/resend-callbacks.md
+  - https://partner.getpliant.com/reference/revoke-access-link.md
+  - https://partner.getpliant.com/reference/search-callbacks.md
+  - https://partner.getpliant.com/reference/simulate-prefund-payment.md
+  - https://partner.getpliant.com/reference/simulate-transaction-status-transition.md
+  - https://partner.getpliant.com/reference/start-identity-verification.md
+  - https://partner.getpliant.com/reference/stop-identity-verification.md
+  - https://partner.getpliant.com/reference/submit-external-transfer.md
+  - https://partner.getpliant.com/reference/submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/terminate-card.md
+  - https://partner.getpliant.com/reference/unassign-from-team.md
+  - https://partner.getpliant.com/reference/unassign-project-team.md
+  - https://partner.getpliant.com/reference/unenroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/unload-cards-batch.md
+  - https://partner.getpliant.com/reference/unlock-card.md
+  - https://partner.getpliant.com/reference/update-accounting-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-beneficiary-activation.md
+  - https://partner.getpliant.com/reference/update-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/update-beneficiary.md
+  - https://partner.getpliant.com/reference/update-card-account.md
+  - https://partner.getpliant.com/reference/update-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/update-card-copilots.md
+  - https://partner.getpliant.com/reference/update-card-label.md
+  - https://partner.getpliant.com/reference/update-card-limit.md
+  - https://partner.getpliant.com/reference/update-card-validity-period.md
+  - https://partner.getpliant.com/reference/update-card.md
+  - https://partner.getpliant.com/reference/update-cardholders.md
+  - https://partner.getpliant.com/reference/update-custom-field-option.md
+  - https://partner.getpliant.com/reference/update-custom-field.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-card.md
+  - https://partner.getpliant.com/reference/update-external-transfer-status.md
+  - https://partner.getpliant.com/reference/update-external-transfer.md
+  - https://partner.getpliant.com/reference/update-organization.md
+  - https://partner.getpliant.com/reference/update-partner-settings.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-project.md
+  - https://partner.getpliant.com/reference/update-team.md
+  - https://partner.getpliant.com/reference/update-transaction-category.md
+  - https://partner.getpliant.com/reference/update-transaction-comment.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-transaction-receipt-upload.md
+  - https://partner.getpliant.com/reference/upload-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/upload-receipt.md
+  - https://partner.getpliant.com/reference/validate-onboarding-submission.md
+  merge:
+    pages: 225
+    deduped: 1508
+    conflicts_kept_first: 0

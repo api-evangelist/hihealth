@@ -1,0 +1,1391 @@
+openapi: 3.2.0
+info:
+  contact:
+    name: API Support
+    email: support@getpliant.com
+    url: https://www.getpliant.com
+  title: Pliant Partner Beneficiaries API
+  description: Pliant Partner API
+  version: 2.1.0
+  license:
+    name: MIT
+    url: https://opensource.org/license/MIT
+servers:
+- url: https://partner-api.getpliant.com/api
+  description: Pliant Production Server
+- url: https://sandbox.partner-api.getpliant.com/api
+  description: Pliant Sandbox Server
+- url: https://pci-api.getpliant.com
+  description: PCI Vault Production Server
+- url: https://pci-sandbox.partner-api.getpliant.com
+  description: PCI Vault Sandbox Server
+security:
+- bearerAuth: []
+tags:
+- name: Beneficiaries
+  description: This tag is for operations related to beneficiaries
+paths:
+  /beneficiaries:
+    get:
+      summary: List Beneficiaries
+      description: Query beneficiaries for a specific organization. Beneficiaries are entities that can receive external transfers from your organization.
+      tags:
+      - Beneficiaries
+      operationId: get-beneficiaries
+      parameters:
+      - name: organizationId
+        in: query
+        description: The organization for which the beneficiaries are requested.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page number. Starts from '0'.
+        required: false
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        description: Client suggested limit to restrict the number of entries on a page.
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Beneficiary'
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates whether there is a next page available.
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      summary: Create Beneficiary
+      description: 'Create a new beneficiary for the specified organization.
+
+
+        Beneficiaries are entities that can receive external transfers from your organization. You must provide the required address information and specify whether the beneficiary is a business or individual.'
+      tags:
+      - Beneficiaries
+      operationId: create-beneficiary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                organizationId:
+                  type: string
+                  format: uuid
+                  description: The organization to which the beneficiary belongs.
+                type:
+                  type: string
+                  enum:
+                  - BUSINESS
+                  - INDIVIDUAL
+                  description: 'The type of the beneficiary. It can be one of the following values:
+
+                    - `BUSINESS`: A business entity beneficiary.
+
+                    - `INDIVIDUAL`: An individual person beneficiary.
+
+                    '
+                legalName:
+                  type: string
+                  description: The legal name of the beneficiary.
+                displayName:
+                  type: string
+                  description: The display name of the beneficiary.
+                email:
+                  type: string
+                  format: email
+                  description: The email address of the beneficiary.
+                street:
+                  type: string
+                  description: The street address of the beneficiary.
+                postalCode:
+                  type: string
+                  description: The postal code of the beneficiary's address.
+                city:
+                  type: string
+                  description: The city of the beneficiary's address.
+                region:
+                  type: string
+                  description: The region or state of the beneficiary's address.
+                country:
+                  type: string
+                  description: The country of the beneficiary's address in ISO 3166-1 alpha-2 format (e.g., `DE` for Germany, `US` for United States).
+              required:
+              - organizationId
+              - type
+              - legalName
+              - street
+              - postalCode
+              - city
+              - country
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /beneficiaries/subscription:
+    post:
+      summary: 'Callback: Add/Update'
+      description: Subscribe to callbacks for this entity or change an existing callback.
+      tags:
+      - Beneficiaries
+      operationId: create-beneficiary-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callbackUrl:
+                  type: string
+                  format: uri
+                  example: https://myserver.com/send/callback/here
+                  description: The URL to send the callback to. Must be a valid and reachable URL. We do some basic validation to ensure the URL is syntactically correct and reachable for Pliant. Only HTTPS URLs are supported.
+                eventTypes:
+                  type: array
+                  description: The event types to subscribe to.
+                  items:
+                    type: string
+                    enum:
+                    - BENEFICIARY_CREATED
+                    - BENEFICIARY_UPDATED
+                    - BENEFICIARY_ACTIVATION_CHANGED
+                    - BENEFICIARY_PAYMENT_DETAILS_CREATED
+                    - BENEFICIARY_PAYMENT_DETAILS_UPDATED
+              required:
+              - callbackUrl
+              - eventTypes
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+      callbacks:
+        beneficiaryCreated:
+          '{$request.body#/callbackUrl}':
+            description: Callback structure for beneficiary creation (BENEFICIARY_CREATED).
+            post:
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/BeneficiaryCreatedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        beneficiaryUpdated:
+          '{$request.body#/callbackUrl}':
+            description: Callback structure for beneficiary updates (BENEFICIARY_UPDATED).
+            post:
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/BeneficiaryUpdatedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        beneficiaryActivationChanged:
+          '{$request.body#/callbackUrl}':
+            description: Callback structure for beneficiary activation changes (BENEFICIARY_ACTIVATION_CHANGED).
+            post:
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/BeneficiaryActivationChangedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        beneficiaryPaymentDetailsCreated:
+          '{$request.body#/callbackUrl}':
+            description: Callback structure for beneficiary payment details creation (BENEFICIARY_PAYMENT_DETAILS_CREATED).
+            post:
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/BeneficiaryPaymentDetailsCreatedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        beneficiaryPaymentDetailsUpdated:
+          '{$request.body#/callbackUrl}':
+            description: Callback structure for beneficiary payment details updates (BENEFICIARY_PAYMENT_DETAILS_UPDATED).
+            post:
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/BeneficiaryPaymentDetailsUpdatedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+    delete:
+      summary: 'Callback: Remove'
+      description: Remove a callback subscription for this entity.
+      tags:
+      - Beneficiaries
+      operationId: remove-beneficiary-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventTypes:
+                  type: array
+                  description: The event types to unsubscribe from.
+                  items:
+                    type: string
+                    enum:
+                    - BENEFICIARY_CREATED
+                    - BENEFICIARY_UPDATED
+                    - BENEFICIARY_ACTIVATION_CHANGED
+                    - BENEFICIARY_PAYMENT_DETAILS_CREATED
+                    - BENEFICIARY_PAYMENT_DETAILS_UPDATED
+              required:
+              - eventTypes
+      responses:
+        '200':
+          description: Ok
+  /beneficiaries/{beneficiaryId}:
+    get:
+      summary: Get Beneficiary Details
+      description: Get detailed information about a specific beneficiary.
+      tags:
+      - Beneficiaries
+      operationId: get-beneficiary-details
+      parameters:
+      - name: beneficiaryId
+        in: path
+        description: The unique identifier of the beneficiary.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Beneficiary'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    put:
+      summary: Update Beneficiary
+      description: Update an existing beneficiary. You can modify the beneficiary's information including address details, contact information, and display name.
+      tags:
+      - Beneficiaries
+      operationId: update-beneficiary
+      parameters:
+      - name: beneficiaryId
+        in: path
+        description: The unique identifier of the beneficiary.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                  - BUSINESS
+                  - INDIVIDUAL
+                  description: 'The type of the beneficiary. It can be one of the following values:
+
+                    - `BUSINESS`: A business entity beneficiary.
+
+                    - `INDIVIDUAL`: An individual person beneficiary.
+
+                    '
+                legalName:
+                  type: string
+                  description: The legal name of the beneficiary.
+                displayName:
+                  type: string
+                  description: The display name of the beneficiary.
+                email:
+                  type: string
+                  format: email
+                  description: The email address of the beneficiary.
+                street:
+                  type: string
+                  description: The street address of the beneficiary.
+                postalCode:
+                  type: string
+                  description: The postal code of the beneficiary's address.
+                city:
+                  type: string
+                  description: The city of the beneficiary's address.
+                region:
+                  type: string
+                  description: The region or state of the beneficiary's address.
+                country:
+                  type: string
+                  description: The country of the beneficiary's address in ISO 3166-1 alpha-2 format (e.g., `DE` for Germany, `US` for United States).
+              required:
+              - type
+              - legalName
+              - street
+              - postalCode
+              - city
+              - country
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /beneficiaries/{beneficiaryId}/active:
+    patch:
+      summary: Update Beneficiary Activation Status
+      description: Update the activation status of a beneficiary.
+      tags:
+      - Beneficiaries
+      operationId: update-beneficiary-activation
+      parameters:
+      - name: beneficiaryId
+        in: path
+        description: The unique identifier of the beneficiary.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                  description: Whether the beneficiary should be active or inactive.
+              required:
+              - active
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /beneficiaries/{beneficiaryId}/payment-details:
+    get:
+      summary: List Beneficiary Payment Details
+      description: 'Get all payment details for a specific beneficiary.
+
+
+        Payment details contain the banking information required to process transfers to the beneficiary. A beneficiary can have multiple payment details for different currencies or banking methods.'
+      tags:
+      - Beneficiaries
+      operationId: get-beneficiary-payment-details
+      parameters:
+      - name: beneficiaryId
+        in: path
+        description: The unique identifier of the beneficiary.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page number. Starts from '0'.
+        required: false
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        description: Client suggested limit to restrict the number of entries on a page.
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BeneficiaryPaymentDetail'
+                    description: List of payment details for the beneficiary.
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates whether there is a next page available.
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      summary: Create Beneficiary Payment Detail
+      description: 'Create a new payment detail for a beneficiary.
+
+
+        Payment details contain the banking information required to process transfers to the beneficiary. You can create multiple payment details for different currencies or banking methods.'
+      tags:
+      - Beneficiaries
+      operationId: create-beneficiary-payment-detail
+      parameters:
+      - name: beneficiaryId
+        in: path
+        description: The unique identifier of the beneficiary.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bankCountry:
+                  type: string
+                  description: The country where the bank is located in ISO 3166-1 alpha-2 format (e.g., `DE` for Germany, `US` for United States).
+                bankAccountCurrency:
+                  type: string
+                  description: 'The currency of the bank account in ISO 4217 format. For `EUR`, `SEK`, `DKK`, `AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON` accounts, `accountDetail` must include `iban` and `bic`.
+
+                    '
+                bankAccountType:
+                  type:
+                  - string
+                  - 'null'
+                  enum:
+                  - LOCAL
+                  - INTERNATIONAL
+                  description: 'The type of bank account. The type can only be set when it makes sense in the `bankCountry` - currently only in `GB`. It will be ignored for other countries.
+
+
+                    It can be one of the following values:
+
+                    - `LOCAL`: A local bank account within the same country.
+
+                    - `INTERNATIONAL`: An international bank account for cross-border transfers.
+
+                    '
+                accountDetail:
+                  $ref: '#/components/schemas/AccountDetail'
+              required:
+              - bankCountry
+              - bankAccountCurrency
+              - accountDetail
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeneficiaryPaymentDetail'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /beneficiaries/{beneficiaryId}/payment-details/{paymentDetailId}:
+    get:
+      summary: Get Beneficiary Payment Detail
+      description: 'Get detailed information about a specific payment detail for a beneficiary.
+
+
+        Payment details contain the banking information required to process transfers to the beneficiary, including account numbers, bank codes, and currency information.'
+      tags:
+      - Beneficiaries
+      operationId: get-beneficiary-payment-detail
+      parameters:
+      - name: beneficiaryId
+        in: path
+        description: The unique identifier of the beneficiary.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: paymentDetailId
+        in: path
+        description: The unique identifier of the payment detail.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeneficiaryPaymentDetail'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    put:
+      summary: Update Beneficiary Payment Detail
+      description: 'Update an existing payment detail for a beneficiary. You can modify banking information including account details, currency, and bank country.
+
+
+        This operation allows you to update the banking information required for transfers to the beneficiary.'
+      tags:
+      - Beneficiaries
+      operationId: update-beneficiary-payment-detail
+      parameters:
+      - name: beneficiaryId
+        in: path
+        description: The unique identifier of the beneficiary.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: paymentDetailId
+        in: path
+        description: The unique identifier of the payment detail to update.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bankCountry:
+                  type: string
+                  description: The country where the bank is located in ISO 3166-1 alpha-2 format (e.g., `DE` for Germany, `US` for United States).
+                bankAccountCurrency:
+                  type: string
+                  description: 'The currency of the bank account in ISO 4217 format. For `EUR`, `SEK`, `DKK`, `AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON` accounts, `accountDetail` must include `iban` and `bic`.
+
+                    '
+                bankAccountType:
+                  type:
+                  - string
+                  - 'null'
+                  enum:
+                  - LOCAL
+                  - INTERNATIONAL
+                  description: 'The type of bank account. The type can only be set when it makes sense in the `bankCountry` - currently only in `GB`. It will be ignored for other countries.
+
+
+                    It can be one of the following values:
+
+                    - `LOCAL`: A local bank account within the same country.
+
+                    - `INTERNATIONAL`: An international bank account for cross-border transfers.
+
+                    '
+                accountDetail:
+                  $ref: '#/components/schemas/AccountDetail'
+              required:
+              - bankCountry
+              - bankAccountCurrency
+              - accountDetail
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeneficiaryPaymentDetail'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  responses:
+    '403':
+      description: Forbidden. The API consumer is not allowed to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '404':
+      description: Not Found. The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '409':
+      description: Conflict. The request could not be completed due to a conflict with the current state of the resource. You may retry the call.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '500':
+      description: Internal Server Error. The request was not completed due to an internal error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '422':
+      description: Unprocessable Content. The request could not be completed due to contents of the request. The syntax of the request content was correct.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '429':
+      description: Too Many Requests. The API consumer has sent too many requests in a given amount of time. Please check our [API guidelines](/docs/pliant-api-guidelines#api-rate-limits).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Detailed description of the error and breached rate limit.
+    '401':
+      description: Unauthorized. The API consumer is not authorized to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '400':
+      description: Bad Request. The API consumer sent a malformed request which could not be processed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: The error code
+        exceptionId:
+          type: string
+          format: uuid
+          description: The id of the exception that was thrown
+        message:
+          type: string
+          description: The cause of the error or further explanations on the error
+    BeneficiaryPaymentDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the beneficiary payment detail.
+        bankCountry:
+          type: string
+          description: The country where the bank is located in ISO 3166-1 alpha-2 format (e.g., `DE` for Germany, `US` for United States).
+        bankAccountCurrency:
+          type: string
+          description: 'The currency of the bank account in ISO 4217 format. For `EUR`, `SEK`, `DKK`, `AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON` accounts, `accountDetail` must include `iban` and `bic`.
+
+            '
+        bankAccountType:
+          type:
+          - string
+          - 'null'
+          enum:
+          - LOCAL
+          - INTERNATIONAL
+          description: 'The type of bank account. The type can only be set when it makes sense in the `bankCountry` - currently only in `GB`. It will be ignored for other countries.
+
+
+            It can be one of the following values:
+
+            - `LOCAL`: A local bank account within the same country.
+
+            - `INTERNATIONAL`: An international bank account for cross-border transfers.
+
+            '
+        accountDetail:
+          $ref: '#/components/schemas/AccountDetail'
+    AccountDetail:
+      type: object
+      description: "The account details. Which properties are required depends on the `bankAccountCurrency`, `bankCountry`, and `bankAccountType`:\n\n* `bankAccountCurrency` is one of `EUR`, `SEK`, `DKK`, `AED`, `CZK`, `HUF`, `NOK`, `PLN`, `RON` → `iban` & `bic`\n* otherwise, in `GB`:\n  * `LOCAL` → `accountNumber` & `sortCode`\n  * `INTERNATIONAL` → `iban` & `bic`\n\nEverywhere else → `iban` & `bic`. In the future other rules may apply.\n"
+      properties:
+        accountHolderName:
+          type: string
+          description: The full name of the account holder.
+        bankName:
+          type: string
+          description: The name of the bank where the account is held.
+        iban:
+          type:
+          - string
+          - 'null'
+          description: The International Bank Account Number (IBAN) for the account. Used primarily for European bank accounts.
+        bic:
+          type:
+          - string
+          - 'null'
+          description: The Bank Identifier Code (BIC) or SWIFT code for the bank. Used for international transfers.
+        accountNumber:
+          type:
+          - string
+          - 'null'
+          description: The local bank account number. Used for domestic transfers in some countries.
+        sortCode:
+          type:
+          - string
+          - 'null'
+          description: The sort code or routing number for the bank account. Used primarily in the UK and US.
+      required:
+      - accountHolderName
+      - bankName
+    Beneficiary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the beneficiary.
+        organizationId:
+          type: string
+          format: uuid
+          description: The organization to which the beneficiary belongs.
+        type:
+          type: string
+          enum:
+          - BUSINESS
+          - INDIVIDUAL
+          description: 'The type of the beneficiary. It can be one of the following values:
+
+            - `BUSINESS`: A business entity beneficiary.
+
+            - `INDIVIDUAL`: An individual person beneficiary.
+
+            '
+        legalName:
+          type: string
+          description: The legal name of the beneficiary.
+        displayName:
+          type: string
+          description: The display name of the beneficiary.
+        email:
+          type: string
+          format: email
+          description: The email address of the beneficiary.
+        street:
+          type: string
+          description: The street address of the beneficiary.
+        postalCode:
+          type: string
+          description: The postal code of the beneficiary's address.
+        city:
+          type: string
+          description: The city of the beneficiary's address.
+        region:
+          type: string
+          description: The region or state of the beneficiary's address.
+        country:
+          type: string
+          description: The country of the beneficiary's address in ISO 3166-1 alpha-2 format (e.g., `DE` for Germany, `US` for United States).
+        active:
+          type: boolean
+          description: Whether the beneficiary is active and can be used for transfers.
+    BeneficiaryCallback:
+      type: object
+      properties:
+        beneficiaryId:
+          type: string
+          format: uuid
+          description: The unique identifier of the beneficiary.
+        organizationId:
+          type: string
+          format: uuid
+          description: The organization to which the beneficiary belongs.
+        type:
+          type: string
+          enum:
+          - BUSINESS
+          - INDIVIDUAL
+          description: 'The type of the beneficiary. It can be one of the following values:
+
+            - `BUSINESS`: A business entity beneficiary.
+
+            - `INDIVIDUAL`: An individual person beneficiary.
+
+            '
+        legalName:
+          type: string
+          description: The legal name of the beneficiary.
+        displayName:
+          type: string
+          description: The display name of the beneficiary.
+        email:
+          type: string
+          format: email
+          description: The email address of the beneficiary.
+        street:
+          type: string
+          description: The street address of the beneficiary.
+        postalCode:
+          type: string
+          description: The postal code of the beneficiary's address.
+        city:
+          type: string
+          description: The city of the beneficiary's address.
+        region:
+          type: string
+          description: The region or state of the beneficiary's address.
+        country:
+          type: string
+          description: The country of the beneficiary's address in ISO 3166-1 alpha-2 format (e.g., `DE` for Germany, `US` for United States).
+        active:
+          type: boolean
+          description: Whether the beneficiary is active and can be used for transfers.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time when the beneficiary was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time when the beneficiary was last updated.
+    Event:
+      type: object
+      properties:
+        eventType:
+          type: string
+          description: The type of event.
+  requestBodies:
+    BeneficiaryPaymentDetailsCreatedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/BeneficiaryPaymentDetail'
+    BeneficiaryUpdatedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/BeneficiaryCallback'
+    BeneficiaryCreatedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/BeneficiaryCallback'
+    BeneficiaryActivationChangedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/BeneficiaryCallback'
+    BeneficiaryPaymentDetailsUpdatedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/BeneficiaryPaymentDetail'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: This API uses oAuth2 with client credentials flow to [obtain the Bearer Token](/docs/authenticated-api-usage).
+      bearerFormat: JWT
+x-provenance:
+  method: searched
+  source: https://partner.getpliant.com/reference
+  harvested: '2026-10-14'
+  tool: harvest-readme-openapi.py
+  note: Assembled verbatim from the OpenAPI definition ReadMe embeds in each operation page of the provider's developer portal; paths and components merged by API title, nothing authored.
+  assembled_from:
+  - https://partner.getpliant.com/reference/activate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/activate-physical-card.md
+  - https://partner.getpliant.com/reference/approve-card-limit-requests.md
+  - https://partner.getpliant.com/reference/approve-card-request.md
+  - https://partner.getpliant.com/reference/assign-project-team.md
+  - https://partner.getpliant.com/reference/assign-to-team.md
+  - https://partner.getpliant.com/reference/batch-update-cards-limits.md
+  - https://partner.getpliant.com/reference/bulk-upsert-subscriptions.md
+  - https://partner.getpliant.com/reference/cancel-onboarding-submission.md
+  - https://partner.getpliant.com/reference/card-pan-and-cvv-pci-vault.md
+  - https://partner.getpliant.com/reference/claim-card-as-copilot.md
+  - https://partner.getpliant.com/reference/create-access-link.md
+  - https://partner.getpliant.com/reference/create-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-and-submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/create-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/create-beneficiary.md
+  - https://partner.getpliant.com/reference/create-card-account-payout.md
+  - https://partner.getpliant.com/reference/create-card-account-subscription.md
+  - https://partner.getpliant.com/reference/create-card-account-transfer.md
+  - https://partner.getpliant.com/reference/create-card-account.md
+  - https://partner.getpliant.com/reference/create-card-control-subscription.md
+  - https://partner.getpliant.com/reference/create-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/create-card-limit-request-subscriptions.md
+  - https://partner.getpliant.com/reference/create-card-limit-requests.md
+  - https://partner.getpliant.com/reference/create-card-request-subscription.md
+  - https://partner.getpliant.com/reference/create-card-request.md
+  - https://partner.getpliant.com/reference/create-card-subscription.md
+  - https://partner.getpliant.com/reference/create-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/create-cashback-subscription.md
+  - https://partner.getpliant.com/reference/create-custom-field-option.md
+  - https://partner.getpliant.com/reference/create-custom-field.md
+  - https://partner.getpliant.com/reference/create-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/create-external-transfer.md
+  - https://partner.getpliant.com/reference/create-lead.md
+  - https://partner.getpliant.com/reference/create-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-organization-subscription.md
+  - https://partner.getpliant.com/reference/create-organization.md
+  - https://partner.getpliant.com/reference/create-payment-subscription.md
+  - https://partner.getpliant.com/reference/create-project.md
+  - https://partner.getpliant.com/reference/create-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/create-receipt-subscription.md
+  - https://partner.getpliant.com/reference/create-statement-subscription.md
+  - https://partner.getpliant.com/reference/create-team.md
+  - https://partner.getpliant.com/reference/create-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-vop-verification.md
+  - https://partner.getpliant.com/reference/deactivate-card-account.md
+  - https://partner.getpliant.com/reference/deactivate-cardholder.md
+  - https://partner.getpliant.com/reference/deactivate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/deactivate-team.md
+  - https://partner.getpliant.com/reference/delete-card-limit-requests.md
+  - https://partner.getpliant.com/reference/delete-card-request.md
+  - https://partner.getpliant.com/reference/delete-custom-field-option.md
+  - https://partner.getpliant.com/reference/delete-custom-field.md
+  - https://partner.getpliant.com/reference/delete-project.md
+  - https://partner.getpliant.com/reference/delete-receipt.md
+  - https://partner.getpliant.com/reference/delete-subscription.md
+  - https://partner.getpliant.com/reference/delete-team.md
+  - https://partner.getpliant.com/reference/delete-transaction-comment.md
+  - https://partner.getpliant.com/reference/enable-pliant-app-access.md
+  - https://partner.getpliant.com/reference/enroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/generate-test-transactions-in-sandbox.md
+  - https://partner.getpliant.com/reference/get-account-entries.md
+  - https://partner.getpliant.com/reference/get-accounting-transactions-batch.md
+  - https://partner.getpliant.com/reference/get-available-cards.md
+  - https://partner.getpliant.com/reference/get-beneficiaries.md
+  - https://partner.getpliant.com/reference/get-beneficiary-details.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-details.md
+  - https://partner.getpliant.com/reference/get-callback-details.md
+  - https://partner.getpliant.com/reference/get-callback-log.md
+  - https://partner.getpliant.com/reference/get-callback-subscriptions.md
+  - https://partner.getpliant.com/reference/get-callback.md
+  - https://partner.getpliant.com/reference/get-card-account-details.md
+  - https://partner.getpliant.com/reference/get-card-accounts-available-currencies.md
+  - https://partner.getpliant.com/reference/get-card-accounts-summary.md
+  - https://partner.getpliant.com/reference/get-card-accounts.md
+  - https://partner.getpliant.com/reference/get-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-countries.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-currencies.md
+  - https://partner.getpliant.com/reference/get-card-limit-request-detail.md
+  - https://partner.getpliant.com/reference/get-card-pin.md
+  - https://partner.getpliant.com/reference/get-card-request-details.md
+  - https://partner.getpliant.com/reference/get-card-requests.md
+  - https://partner.getpliant.com/reference/get-cardholder-details.md
+  - https://partner.getpliant.com/reference/get-cards.md
+  - https://partner.getpliant.com/reference/get-cashback-amounts.md
+  - https://partner.getpliant.com/reference/get-cashback-configuration.md
+  - https://partner.getpliant.com/reference/get-cashback-history.md
+  - https://partner.getpliant.com/reference/get-cashback-receipt.md
+  - https://partner.getpliant.com/reference/get-cashback-transactions.md
+  - https://partner.getpliant.com/reference/get-custom-field-options.md
+  - https://partner.getpliant.com/reference/get-custom-fields.md
+  - https://partner.getpliant.com/reference/get-external-transfer-details.md
+  - https://partner.getpliant.com/reference/get-external-transfers.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization-details.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization.md
+  - https://partner.getpliant.com/reference/get-multiple-card-details.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-activity-codes.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-industry.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission-document.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission.md
+  - https://partner.getpliant.com/reference/get-organization-details.md
+  - https://partner.getpliant.com/reference/get-organization-external-bank-account.md
+  - https://partner.getpliant.com/reference/get-organization-risk-status.md
+  - https://partner.getpliant.com/reference/get-organizations-external-bank-accounts.md
+  - https://partner.getpliant.com/reference/get-otp-for-pci-widget.md
+  - https://partner.getpliant.com/reference/get-partner-signing-jwks.md
+  - https://partner.getpliant.com/reference/get-payment-program.md
+  - https://partner.getpliant.com/reference/get-payments-detail.md
+  - https://partner.getpliant.com/reference/get-payments.md
+  - https://partner.getpliant.com/reference/get-project.md
+  - https://partner.getpliant.com/reference/get-projects.md
+  - https://partner.getpliant.com/reference/get-receipt-automatcher-status.md
+  - https://partner.getpliant.com/reference/get-receipt-detail.md
+  - https://partner.getpliant.com/reference/get-receipts.md
+  - https://partner.getpliant.com/reference/get-single-card-details.md
+  - https://partner.getpliant.com/reference/get-statement-csv.md
+  - https://partner.getpliant.com/reference/get-statement-detail.md
+  - https://partner.getpliant.com/reference/get-statementpdf.md
+  - https://partner.getpliant.com/reference/get-statements.md
+  - https://partner.getpliant.com/reference/get-team.md
+  - https://partner.getpliant.com/reference/get-teams.md
+  - https://partner.getpliant.com/reference/get-transactions-detail-batch.md
+  - https://partner.getpliant.com/reference/get-transactions-detail.md
+  - https://partner.getpliant.com/reference/get-transactions.md
+  - https://partner.getpliant.com/reference/get-vop-verification.md
+  - https://partner.getpliant.com/reference/invite-cardholders.md
+  - https://partner.getpliant.com/reference/invite-owner.md
+  - https://partner.getpliant.com/reference/issue-card-instant-with-pci.md
+  - https://partner.getpliant.com/reference/issue-card-instant.md
+  - https://partner.getpliant.com/reference/issue-card.md
+  - https://partner.getpliant.com/reference/list-card-limit-requests.md
+  - https://partner.getpliant.com/reference/list-cardholders.md
+  - https://partner.getpliant.com/reference/list-identity-verifications.md
+  - https://partner.getpliant.com/reference/list-onboarding-submissions.md
+  - https://partner.getpliant.com/reference/list-organizations.md
+  - https://partner.getpliant.com/reference/load-cards-batch.md
+  - https://partner.getpliant.com/reference/lock-card.md
+  - https://partner.getpliant.com/reference/metadata-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/reassign-platform-fee-card.md
+  - https://partner.getpliant.com/reference/receipt-as-merged-pdf.md
+  - https://partner.getpliant.com/reference/receipt-as-pdf.md
+  - https://partner.getpliant.com/reference/receipt-original.md
+  - https://partner.getpliant.com/reference/receipt-thumbnail.md
+  - https://partner.getpliant.com/reference/redeem-cashback.md
+  - https://partner.getpliant.com/reference/register-cardholders.md
+  - https://partner.getpliant.com/reference/reject-card-limit-requests.md
+  - https://partner.getpliant.com/reference/reject-card-request.md
+  - https://partner.getpliant.com/reference/remove-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/remove-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-account-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-control-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-limit-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/remove-cards-subscription.md
+  - https://partner.getpliant.com/reference/remove-cashback-subscription.md
+  - https://partner.getpliant.com/reference/remove-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/remove-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/remove-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/remove-organization-subscription.md
+  - https://partner.getpliant.com/reference/remove-payment-subscription.md
+  - https://partner.getpliant.com/reference/remove-pliant-app-access.md
+  - https://partner.getpliant.com/reference/remove-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/remove-receipt-subscription.md
+  - https://partner.getpliant.com/reference/remove-statement-subscription.md
+  - https://partner.getpliant.com/reference/remove-transaction-subscription.md
+  - https://partner.getpliant.com/reference/replace-card.md
+  - https://partner.getpliant.com/reference/resend-callbacks.md
+  - https://partner.getpliant.com/reference/revoke-access-link.md
+  - https://partner.getpliant.com/reference/search-callbacks.md
+  - https://partner.getpliant.com/reference/simulate-prefund-payment.md
+  - https://partner.getpliant.com/reference/simulate-transaction-status-transition.md
+  - https://partner.getpliant.com/reference/start-identity-verification.md
+  - https://partner.getpliant.com/reference/stop-identity-verification.md
+  - https://partner.getpliant.com/reference/submit-external-transfer.md
+  - https://partner.getpliant.com/reference/submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/terminate-card.md
+  - https://partner.getpliant.com/reference/unassign-from-team.md
+  - https://partner.getpliant.com/reference/unassign-project-team.md
+  - https://partner.getpliant.com/reference/unenroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/unload-cards-batch.md
+  - https://partner.getpliant.com/reference/unlock-card.md
+  - https://partner.getpliant.com/reference/update-accounting-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-beneficiary-activation.md
+  - https://partner.getpliant.com/reference/update-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/update-beneficiary.md
+  - https://partner.getpliant.com/reference/update-card-account.md
+  - https://partner.getpliant.com/reference/update-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/update-card-copilots.md
+  - https://partner.getpliant.com/reference/update-card-label.md
+  - https://partner.getpliant.com/reference/update-card-limit.md
+  - https://partner.getpliant.com/reference/update-card-validity-period.md
+  - https://partner.getpliant.com/reference/update-card.md
+  - https://partner.getpliant.com/reference/update-cardholders.md
+  - https://partner.getpliant.com/reference/update-custom-field-option.md
+  - https://partner.getpliant.com/reference/update-custom-field.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-card.md
+  - https://partner.getpliant.com/reference/update-external-transfer-status.md
+  - https://partner.getpliant.com/reference/update-external-transfer.md
+  - https://partner.getpliant.com/reference/update-organization.md
+  - https://partner.getpliant.com/reference/update-partner-settings.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-project.md
+  - https://partner.getpliant.com/reference/update-team.md
+  - https://partner.getpliant.com/reference/update-transaction-category.md
+  - https://partner.getpliant.com/reference/update-transaction-comment.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-transaction-receipt-upload.md
+  - https://partner.getpliant.com/reference/upload-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/upload-receipt.md
+  - https://partner.getpliant.com/reference/validate-onboarding-submission.md
+  merge:
+    pages: 225
+    deduped: 1508
+    conflicts_kept_first: 0

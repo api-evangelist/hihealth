@@ -168,8 +168,10 @@ common:
 
 apis:
 - name: Pliant Cards-as-a-Service (CaaS) API
-  description: The embedded credit-card API that powers hi.health. Partners issue and manage cards, cardholders, transactions, receipts, payments,
-    statements and external transfers, with OAuth2 client-credentials auth, asynchronous callbacks and a PCI-DSS-certified data path (pci-api.getpliant.com).
+  description: >-
+    The embedded credit-card API that powers hi.health. Partners issue and manage cards, cardholders,
+    transactions, receipts, payments, statements and external transfers, with OAuth2 client-credentials
+    auth, asynchronous callbacks and a PCI-DSS-certified data path (pci-api.getpliant.com).
   humanURL: https://partner.getpliant.com/
   baseURL: https://partner-api.getpliant.com/api/
   properties:
@@ -185,8 +187,9 @@ apis:
     url: llms/hihealth-llms.txt
   aid: hihealth:pliant-cards-as-a-service-caas-api
 - name: Pliant Pro API
-  description: The customer-facing Pro API for programmatic access to Pliant credit-card data and features (cards, cardholders, transactions,
-    receipts, accounting, payments).
+  description: >-
+    The customer-facing Pro API for programmatic access to Pliant credit-card data and features (cards,
+    cardholders, transactions, receipts, accounting, payments).
   humanURL: https://customer-api.getpliant.com/
   baseURL: https://partner-api.getpliant.com/api/
   properties:
@@ -195,26 +198,19 @@ apis:
   - type: APIReference
     url: https://customer-api.getpliant.com/reference
   aid: hihealth:pliant-pro-api
-- aid: hihealth:hihealth-pliant-customer-api
-  name: hi.health Organizations API
-  description: This tag is for operations related to organizations
+- aid: hihealth:hihealth-access-links-api
+  name: hi.health Access Links API
+  description: >-
+    Create and revoke a shareable access link for a card. The person who
+
+    opens the link does not need a Pliant account.
   humanURL: https://partner.getpliant.com/
   baseURL: https://partner-api.getpliant.com/api/
   tags:
-  - Organizations
+  - Access Links
   properties:
   - type: OpenAPI
-    url: openapi/hihealth-pliant-customer-api-openapi.yml
-- aid: hihealth:hihealth-pliant-partner-api
-  name: hi.health Organizations API
-  description: This tag is for operations related to organizations
-  humanURL: https://partner.getpliant.com/
-  baseURL: https://partner-api.getpliant.com/api/
-  tags:
-  - Organizations
-  properties:
-  - type: OpenAPI
-    url: openapi/hihealth-pliant-partner-api-openapi.yml
+    url: openapi/hihealth-access-links-api-openapi.yml
   - type: JSONSchema
     url: json-schema/hihealth-card-detail-schema.json
   - type: JSONSchema
@@ -227,7 +223,648 @@ apis:
     url: json-schema/hihealth-organization-detail-schema.json
   - type: JSONSchema
     url: json-schema/hihealth-organization-create-schema.json
-
+- aid: hihealth:hihealth-account-entries-api
+  name: hi.health Account Entries API
+  description: This tag is for operations related to account entries
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Account Entries
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-account-entries-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-accounting-projects-api
+  name: hi.health Accounting Projects API
+  description: This tag is for operations related to accounting projects
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Accounting Projects
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-accounting-projects-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-accounting-teams-api
+  name: hi.health Accounting Teams API
+  description: This tag is for operations related to accounting teams
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Accounting Teams
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-accounting-teams-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-accounting-transactions-api
+  name: hi.health Accounting Transactions API
+  description: This tag is for operations related to accounting transactions
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Accounting Transactions
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-accounting-transactions-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-beneficiaries-api
+  name: hi.health Beneficiaries API
+  description: This tag is for operations related to beneficiaries
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Beneficiaries
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-beneficiaries-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-callbacks-api
+  name: hi.health Callbacks API
+  description: This tag is for operations related to callbacks
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Callbacks
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-callbacks-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-card-accounts-api
+  name: hi.health Card Accounts API
+  description: This tag is for operations related to card accounts
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Card Accounts
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-card-accounts-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-card-controls-api
+  name: hi.health Card Controls API
+  description: This tag is for operations related to card controls
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Card Controls
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-card-controls-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-card-copilots-api
+  name: hi.health Card Copilots API
+  description: This tag is for operations related to card copilots
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Card Copilots
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-card-copilots-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-card-limit-requests-api
+  name: hi.health Card Limit Requests API
+  description: This tag is for operations related to card limit requests
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Card Limit Requests
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-card-limit-requests-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-card-requests-api
+  name: hi.health Card Requests API
+  description: This tag is for operations related to card requests
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Card Requests
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-card-requests-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-card-sensitive-data-api
+  name: hi.health Card Sensitive Data API
+  description: This tag is for operations related to card sensitive data
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Card Sensitive Data
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-card-sensitive-data-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-cardholders-api
+  name: hi.health Cardholders API
+  description: This tag is for operations related to cardholders
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Cardholders
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-cardholders-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-cards-api
+  name: hi.health Cards API
+  description: This tag is for operations related to cards
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Cards
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-cards-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-cashback-api
+  name: hi.health Cashback API
+  description: This tag is for operations related to cashback
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Cashback
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-cashback-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-custom-fields-api
+  name: hi.health Custom Fields API
+  description: This tag is for operations related to custom fields
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Custom Fields
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-custom-fields-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-external-transfers-api
+  name: hi.health External Transfers API
+  description: This tag is for operations related to external transfers
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - External Transfers
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-external-transfers-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-identity-verification-api
+  name: hi.health Identity Verification API
+  description: This tag is for operations related to identity verification
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Identity Verification
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-identity-verification-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-misc-api
+  name: hi.health Misc API
+  description: This tag is for miscellaneous operations
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Misc
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-misc-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-mobile-wallet-tokenization-api
+  name: hi.health Mobile Wallet Tokenization API
+  description: This tag is for operations related to mobile wallet tokenization
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Mobile Wallet Tokenization
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-mobile-wallet-tokenization-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-onboarding-submissions-api
+  name: hi.health Onboarding Submissions API
+  description: >-
+    This tag is for operations related to onboarding submissions, including submission lifecycle management,
+    validation, callbacks, and reference data
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Onboarding Submissions
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-onboarding-submissions-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-organizations-api
+  name: hi.health Organizations API
+  description: This tag is for operations related to organizations
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Organizations
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-organizations-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-payments-api
+  name: hi.health Payments API
+  description: This tag is for operations related to payments
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Payments
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-payments-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-receipt-automatching-api
+  name: hi.health Receipt Automatching API
+  description: This tag is for operations related to receipt automatching
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Receipt Automatching
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-receipt-automatching-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-receipts-api
+  name: hi.health Receipts API
+  description: This tag is for operations related to receipts
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Receipts
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-receipts-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-statements-api
+  name: hi.health Statements API
+  description: This tag is for operations related to statements
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Statements
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-statements-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-test-data-generator-sandbox-only-api
+  name: hi.health Test Data Generator (Sandbox-only) API
+  description: This tag is for operations related to test data generation
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Test Data Generator (Sandbox-only)
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-test-data-generator-sandbox-only-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-transactions-api
+  name: hi.health Transactions API
+  description: This tag is for operations related to transactions
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Transactions
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-transactions-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
+- aid: hihealth:hihealth-verification-of-payee-api
+  name: hi.health Verification of Payee API
+  description: >-
+    This tag is for operations related to Verification of Payee (VoP) — name-check service mandatory under
+    the SEPA Instant Payments Regulation
+  humanURL: https://partner.getpliant.com/
+  baseURL: https://partner-api.getpliant.com/api/
+  tags:
+  - Verification of Payee
+  properties:
+  - type: OpenAPI
+    url: openapi/hihealth-verification-of-payee-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-card-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-batch-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-transaction-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/hihealth-organization-create-schema.json
 x-enrichment:
   date: '2026-07-19'
   status: backfilled

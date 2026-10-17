@@ -1,0 +1,2429 @@
+openapi: 3.2.0
+info:
+  title: Hihealth Organizations API
+  version: 2.1.0
+  contact:
+    name: API Support
+    email: support@getpliant.com
+    url: https://www.getpliant.com
+  license:
+    name: MIT
+    url: https://opensource.org/license/MIT
+  description: 'Operations tagged Organizations across 2 of this provider''s published API definitions: hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://partner-api.getpliant.com/api
+  description: Pliant Production Server
+- url: https://sandbox.partner-api.getpliant.com/api
+  description: Pliant Sandbox Server
+- url: https://pci-api.getpliant.com
+  description: PCI Vault Production Server
+- url: https://pci-sandbox.partner-api.getpliant.com
+  description: PCI Vault Sandbox Server
+security:
+- bearerAuth: []
+tags:
+- name: Organizations
+  description: This tag is for operations related to organizations
+paths:
+  /organizations:
+    get:
+      summary: List Organizations
+      description: Returns a list of organizations. You can filter by status or VAT ID to find specific organizations. You can use the `limit`, `page`, `sortBy` and `sortDirection` parameters to filter and sort the results.
+      tags:
+      - Organizations
+      operationId: list-organizations
+      parameters:
+      - name: status
+        in: query
+        description: The status of the organizations to filter by.
+        schema:
+          type: string
+          description: The status of the organization, see [our guides](/docs/organization-entity) for more details.
+          enum:
+          - ONBOARDING_STARTED
+          - ONBOARDING_RISK_AND_COMPLIANCE
+          - ONBOARDING_MANDATES_AND_TERMS
+          - ACTIVE
+          - DEACTIVATED
+          - CANCELLED
+          example: ONBOARDING_STARTED
+      - name: vatId
+        in: query
+        description: The VAT ID of the organization to filter by.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: The maximum number of items to return per page. The default value if not provided is 100, the maximum allowed value is 1000.
+        schema:
+          type: integer
+      - name: page
+        in: query
+        description: The page number to return, starting with 0, this counts up to the total number of pages. The total number of pages is determined by the total number of records divided by the limit.
+        schema:
+          type: integer
+      - name: sortBy
+        in: query
+        description: The field to sort by.
+        schema:
+          type: string
+          enum:
+          - id
+          - name
+          - status
+          - createdAt
+      - name: sortDirection
+        in: query
+        description: The direction to sort by.
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        organizationId:
+                          type: string
+                          format: uuid
+                          description: The id of the organization.
+                        name:
+                          type: string
+                          description: The name of the organization.
+                        status:
+                          $ref: '#/paths/~1organizations/get/parameters/0/schema'
+                        vatId:
+                          type:
+                          - string
+                          - 'null'
+                          description: The VAT ID of the organization, if available.
+                        cardAccounts:
+                          $ref: '#/paths/~1organizations~1{organizationId}/get/responses/200/content/application~1json/schema/properties/cardAccounts'
+                        paymentProgramId:
+                          type: string
+                          format: uuid
+                          description: The id of the payment program this organization belongs to.
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates whether there is a next page available.
+        '400':
+          $ref: '#/paths/~1cards/get/responses/400'
+        '401':
+          $ref: '#/paths/~1cards/get/responses/401'
+        '403':
+          $ref: '#/paths/~1cards/get/responses/403'
+        '429':
+          $ref: '#/paths/~1cards/get/responses/429'
+        '500':
+          $ref: '#/paths/~1cards/get/responses/500'
+    post:
+      summary: Create Organization
+      description: Creates a new organization for onboarding via a partner integration.
+      tags:
+      - Organizations
+      operationId: create-organization
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 256
+        description: 'An opaque, unique string that identifies this request — any sufficiently random value (e.g. a UUID) is acceptable. Re-delivery of the same key for the same operation is a no-op. Reusing a key with a different request body returns 409. Follows the IETF HTTP API Working Group''s Idempotency-Key specification: https://github.com/ietf-wg-httpapi/idempotency
+
+          '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+              - $ref: '#/components/schemas/OrganizationCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationCreateResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '422':
+          description: 'Unprocessable Entity. The organization cannot be onboarded. This may be due to a duplicate registration detected internally. The specific reason is intentionally not disclosed.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                errorCode: ORGANIZATION_CANNOT_BE_ONBOARDED
+                exceptionId: b2c3d4e5-f6a7-8901-bcde-f12345678901
+                message: The organization cannot be onboarded.
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    servers:
+    - url: https://partner-api.getpliant.com/api
+      description: Pliant Production Server
+    - url: https://sandbox.partner-api.getpliant.com/api
+      description: Pliant Sandbox Server
+    - url: https://pci-api.getpliant.com
+      description: PCI Vault Production Server
+    - url: https://pci-sandbox.partner-api.getpliant.com
+      description: PCI Vault Sandbox Server
+  /organizations/{organizationId}:
+    get:
+      summary: Organization Details
+      description: Returns a single organization by its ID
+      tags:
+      - Organizations
+      operationId: get-organization-details
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The unique identifier of the organization.
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  organizationId:
+                    type: string
+                    format: uuid
+                    description: The unique identifier of the organization.
+                  name:
+                    type: string
+                    description: The legal name of the organization.
+                  status:
+                    $ref: '#/paths/~1organizations/get/parameters/0/schema'
+                  syncType:
+                    type:
+                    - string
+                    - 'null'
+                    enum:
+                    - FULL
+                    - PARTIAL
+                    description: The sync type of the organization, will always be `FULL` for now.
+                  integrationType:
+                    type:
+                    - string
+                    - 'null'
+                    enum:
+                    - PARTNER
+                    description: The integration type of the organization, will always be `PARTNER`.
+                  creditLimit:
+                    type: object
+                    description: The credit limit for the organization, if applicable. For prefund organizations this value is always 0 EUR. See our [guides](/docs/organization-entity#account-limits-and-balance) for more details regarding limits and balances.
+                    properties:
+                      value:
+                        type: number
+                        description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+                      currency:
+                        type: string
+                        description: The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar.
+                  availableLimit:
+                    type: object
+                    description: The available spending capacity for the organization. See our [guides](/docs/organization-entity#account-limits-and-balance) for more details regarding limits and balances.
+                    properties:
+                      value:
+                        type: number
+                        description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+                      currency:
+                        type: string
+                        description: The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar.
+                  balance:
+                    type: object
+                    description: The balance of the organization, which represents movements (positive and negative) on the account. See our [guides](/docs/organization-entity#account-limits-and-balance) for more details regarding limits and balances.
+                    properties:
+                      value:
+                        type: number
+                        description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+                      currency:
+                        type: string
+                        description: The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar.
+                  cardsAccounts:
+                    type: array
+                    description: 'Organizations are able to define account numbers that are used when exporting data from Pliant to an accounting system (e.g. DATEV). This is optional and only used for accounting purposes. Typically this is set on card account level but we do have fallbacks on organization level.
+
+                      **Important**: The properties and values are not identifiers for the companies card accounts within Pliant. Please use the respective endpoints to gather information about the card accounts.
+
+                      '
+                    items:
+                      type: object
+                      properties:
+                        number:
+                          type:
+                          - number
+                          - 'null'
+                        type:
+                          type: string
+                          enum:
+                          - CREDITOR_ACCOUNT
+                          - PAYMENT_ACCOUNT
+                  tradeName:
+                    type:
+                    - string
+                    - 'null'
+                    description: "An organization may use a different name, e.g. for marketing purposes. In case a trade name is provided, this will be the one printed on the employees' physical cards, instead of the organization's legal name.\nThis field is only optional, as long as the legal `name` of the organization is not longer than 20 characters.\n \n**If the legal `name` is longer than 20 characters, the trade name is required:**\n  - The trade name maximum length is 20 characters, since it is printed on the physical cards.\n  - Trade name cannot be `null` or empty.\n"
+                  legalForm:
+                    type: string
+                    description: 'The legal form of the organization. Use a value for the organization''s `country` from
+
+                      [Legal forms by country](/docs/legal-forms-by-country).
+
+                      Preserve the exact spelling, capitalization, spaces, and punctuation.
+
+                      '
+                  foundationDate:
+                    type: string
+                    format: date
+                    description: The founding date of the organization in the format `DD.MM.YYYY`.
+                  country:
+                    type: string
+                    description: The country of the organization in ISO 3166-1 alpha-2 notation.
+                    minLength: 2
+                    maxLength: 2
+                  accountType:
+                    type: string
+                    deprecated: true
+                    description: 'Replaced by `cardAccount.accountType`, see [API endpoint](./get-card-accounts). This field now shows the account type of the default card account of this organization. Note: a `CREDIT` card account can also top up their balance with a one-time prefund payment. This does not change the `accountType`, but just shows up as a bigger `availableLimit`.'
+                    enum:
+                    - CREDIT
+                    - PREFUNDED
+                  partnersOrganizationId:
+                    type:
+                    - string
+                    - 'null'
+                    description: Optional field, referencing the id used by the partner to identify this organization.
+                    deprecated: true
+                  partnerOrganizationId:
+                    type:
+                    - string
+                    - 'null'
+                    description: Optional field, referencing the id used by the partner to identify this organization.
+                  paymentFrequency:
+                    type: string
+                    deprecated: true
+                    description: Replaced by `cardAccount.paymentFrequency`, see [API endpoint](./get-card-accounts). This field now shows the payment frequency of the default card account of this organization.
+                    enum:
+                    - DAILY
+                    - WEEKLY
+                    - BI_WEEKLY
+                    - MONTHLY
+                    - PREFUNDED
+                  nationalRegisterCourt:
+                    type: string
+                    description: The national register court of the organization.
+                  nationalRegisterId:
+                    type:
+                    - string
+                    - 'null'
+                    description: The national register id of the organization.
+                  nationalRegisterType:
+                    type:
+                    - string
+                    - 'null'
+                    description: The national register type of the organization.
+                  tradeRegisterNumber:
+                    type: string
+                    description: The trade register number of the organization.
+                  vatId:
+                    type:
+                    - string
+                    - 'null'
+                    description: The VAT ID of the organization, if available.
+                  billingEmail:
+                    type:
+                    - string
+                    - 'null'
+                    description: The billing email of the organization.
+                  billingAddress:
+                    type: object
+                    description: The billing address of the organization.
+                    properties:
+                      id:
+                        type: string
+                        description: The unique identifier of the address.
+                      type:
+                        type: string
+                        description: The type of the address, here always `BILLING`.
+                        enum:
+                        - BILLING
+                        - DELIVERY
+                      country:
+                        type:
+                        - string
+                        - 'null'
+                        description: The country of the address in ISO 3166-1 alpha-2 notation. Might be `null` for non-active organizations, but is set for active organizations.
+                        minLength: 2
+                        maxLength: 2
+                      city:
+                        type:
+                        - string
+                        - 'null'
+                        description: The city of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      postalCode:
+                        type:
+                        - string
+                        - 'null'
+                        description: The postal code of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      streetFull:
+                        type:
+                        - string
+                        - 'null'
+                        description: The full street name of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      streetName:
+                        type:
+                        - string
+                        - 'null'
+                        description: The street name of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      streetNumber:
+                        type:
+                        - string
+                        - 'null'
+                        description: The street number of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      streetAdditional:
+                        type:
+                        - string
+                        - 'null'
+                        description: Optional additional street information.
+                  deliveryAddress:
+                    type:
+                    - object
+                    - 'null'
+                    description: The delivery address of the organization.
+                    properties:
+                      id:
+                        type: string
+                        description: The unique identifier of the address.
+                      type:
+                        type: string
+                        description: The type of the address, here always `DELIVERY`.
+                        enum:
+                        - BILLING
+                        - DELIVERY
+                      country:
+                        type:
+                        - string
+                        - 'null'
+                        description: The country of the address in ISO 3166-1 alpha-2 notation. Might be `null` for non-active organizations, but is set for active organizations.
+                        minLength: 2
+                        maxLength: 2
+                      city:
+                        type:
+                        - string
+                        - 'null'
+                        description: The city of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      postalCode:
+                        type:
+                        - string
+                        - 'null'
+                        description: The postal code of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      streetFull:
+                        type:
+                        - string
+                        - 'null'
+                        description: The full street name of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      streetName:
+                        type:
+                        - string
+                        - 'null'
+                        description: The street name of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      streetNumber:
+                        type:
+                        - string
+                        - 'null'
+                        description: The street number of the address. Might be `null` for non-active organizations, but is set for active organizations.
+                      streetAdditional:
+                        type:
+                        - string
+                        - 'null'
+                        description: Optional additional street information.
+                  processingAccount:
+                    type: object
+                    deprecated: true
+                    description: Replaced by `cardAccount.bankAccountInformation`, see [API endpoint](./get-card-accounts). This field now shows the Pliant-internal IBAN of the default card account of this organization.
+                    properties:
+                      beneficiary:
+                        type: string
+                        description: The beneficiary of the processing account.
+                      bankName:
+                        type:
+                        - string
+                        - 'null'
+                        description: The name of the bank of the processing account.
+                      iban:
+                        type:
+                        - string
+                        - 'null'
+                        description: The IBAN of the processing account.
+                      bic:
+                        type:
+                        - string
+                        - 'null'
+                        description: The BIC of the processing account.
+                        example: SPBIDE3B
+                  isCompanyNamePrintable:
+                    type: boolean
+                    description: Determines if the company name should be printed on the card.
+                  eligibleForHybridAccount:
+                    type: boolean
+                    description: Determines if the organization is eligible for a hybrid account. A hybrid account is a credit account with additional prefund balance.
+                  cardAccounts:
+                    type: array
+                    description: The [card accounts](/docs/card-account) of the organization. At least one card account is required.
+                    items:
+                      type: object
+                      description: A [card account](/docs/card-account) of the organization.
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: The id of the card account.
+                        name:
+                          type: string
+                          description: The name of the card account.
+                        status:
+                          type: string
+                          description: The status of the card account. A card account with `status` `SUPERSEDED` was replaced by a successor card account and is kept for historical reasons only. Read the [card account](/reference/get-card-account-details) to find its successor (`supersededBy`).
+                          enum:
+                          - ACTIVE
+                          - PENDING
+                          - DEACTIVATED
+                          - CANCELLED
+                          - SUPERSEDED
+                        defaultAccount:
+                          type: boolean
+                          description: Indicates whether this is the default card account. There is always one active default card account.
+                  missingReceiptNotifications:
+                    type: boolean
+                    description: If set to `true`, the organization will receive notifications about missing receipts. If set to `false`, the organization will not receive notifications about missing receipts.
+                  fxFeePercentage:
+                    type:
+                    - number
+                    - 'null'
+                    description: 'The per-organization fee (as a percentage of the transaction amount) that is charged for foreign exchange transactions. This value is specific to this organization. Example: `2.1`.'
+                    format: float
+                    example: 2.1
+                    minimum: 0
+                    maximum: 100
+                  paymentProgramId:
+                    type: string
+                    format: uuid
+                    description: The id of the payment program this organization belongs to.
+        '400':
+          $ref: '#/paths/~1cards/get/responses/400'
+        '401':
+          $ref: '#/paths/~1cards/get/responses/401'
+        '403':
+          $ref: '#/paths/~1cards/get/responses/403'
+        '404':
+          $ref: '#/paths/~1cards/post/responses/404'
+        '500':
+          $ref: '#/paths/~1cards/get/responses/500'
+    patch:
+      summary: Organization Update
+      description: Update an existing organization. You need to provide all fields with their current values if they should remain unchanged. If you want to update a field, you need to provide the new value. If you want to remove a field, you need to provide `null` as value.
+      tags:
+      - Organizations
+      operationId: update-organization
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The unique identifier of the organization.
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+              - $ref: '#/components/schemas/OrganizationUpdate'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/OrganizationUpdate'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    servers:
+    - url: https://partner-api.getpliant.com/api
+      description: Pliant Production Server
+    - url: https://sandbox.partner-api.getpliant.com/api
+      description: Pliant Sandbox Server
+    - url: https://pci-api.getpliant.com
+      description: PCI Vault Production Server
+    - url: https://pci-sandbox.partner-api.getpliant.com
+      description: PCI Vault Sandbox Server
+  /organizations/subscription:
+    post:
+      summary: 'Callback: Add/Update'
+      description: Subscribe to callbacks for this entity or change an existing callback. For the different organization status, see documentation.
+      tags:
+      - Organizations
+      operationId: create-organization-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callbackUrl:
+                  type: string
+                  format: uri
+                  example: https://myserver.com/send/callback/here
+                  description: The URL to send the callback to. Must be a valid and reachable URL. We do some basic validation to ensure the URL is syntactically correct and reachable for Pliant. Only HTTPS URLs are supported.
+                eventTypes:
+                  type: array
+                  description: The event types to subscribe to.
+                  items:
+                    type: string
+                    enum:
+                    - ORGANIZATION_ADDED
+                    - ORGANIZATION_CONFIG_CHANGED
+                    - ORGANIZATION_DETAILS_CHANGED
+                    - ORGANIZATION_LIMIT_CHANGED
+                    - ORGANIZATION_STATE_CHANGED
+                    - ORGANIZATION_SYNCTYPE_CHANGED
+                    - ORGANIZATION_BALANCE_UPDATED
+                    - AUTHORIZATION_PENDING
+                    - AUTHORIZATION_GRANTED
+                    - AUTHORIZATION_REVOKED
+                    - REPRESENTATIVE_SUBMISSION_STATUS_CHANGED
+                    - REPRESENTATIVE_LEGITIMATION_STATUS_CHANGED
+                    - DOCUMENT_CUSTOMER_STATUS_CHANGED
+                    - DIRECT_DEBIT_STATUS_CHANGED
+                    - BANK_CONNECTION_STATUS_CHANGED
+              required:
+              - callbackUrl
+              - eventTypes
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+      callbacks:
+        organizationUpdated:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback structure for organization update (ORGANIZATION_ADDED, ORGANIZATION_DETAILS_CHANGED, ORGANIZATION_CONFIG_CHANGED, ORGANIZATION_LIMIT_CHANGED, ORGANIZATION_STATE_CHANGED, ORGANIZATION_SYNCTYPE_CHANGED) events. The callback for event type `ORGANIZATION_ADDED` will be triggered and send to partners which refer organizations to Pliant and it will be send prior to an active integration with the partner. This is necessary, since the organization comes first and then the partner integration can be activated. Hence this callback can only be send before an active integration with the partner exists. It is send to the partner which is stored as the referring partner in Pliant.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/OrganizationUpdatedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        organizationBalanceUpdated:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback structure for organization balance update (ORGANIZATION_BALANCE_UPDATED) events.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/OrganizationBalanceUpdatedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        organizationAuthorizationUpdated:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback structure for organization authorization update (AUTHORIZATION_PENDING, AUTHORIZATION_GRANTED, AUTHORIZATION_REVOKED) events.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/OrganizationAuthorizationUpdatedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        organizationBankConnectionStatus:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback structure for organization bank connection status update (BANK_CONNECTION_STATUS_CHANGED) events.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/OrganizationBankConnectionStatusCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        organizationDirectDebitStatus:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback structure for organization direct debit status update (DIRECT_DEBIT_STATUS_CHANGED) events.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/OrganizationDirectDebitStatusCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        organizationDocumentCustomerStatus:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback structure for organization document customer status update (DOCUMENT_CUSTOMER_STATUS_CHANGED) events.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/OrganizationDocumentCustomerStatusCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        organizationRepresentativeLegitimationStatusChanged:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback structure for organization representative legitimation status update (REPRESENTATIVE_LEGITIMATION_STATUS_CHANGED) events.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/OrganizationRepresentativeLegitimationStatusChangedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        organizationRepresentativeSubmissionStatusChanged:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback structure for organization representative submission status update (REPRESENTATIVE_SUBMISSION_STATUS_CHANGED) events.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: 'Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. Example value: `abc123`.'
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details. Example value: `54e6e7e7-0c23-4a54-bccb-2d3ff2fd02df`.'
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: 'A unique identifier for this callback. Can be used to deduplicate callbacks to achieve idempotent behavior. See [guides](/docs/callbacks) for more details. Example value: `12a03093-eaad-4ae5-9d8d-42e7f6f8b7c6`.'
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: 'The date and time when the callback was created. Can be used to reorder callbacks. See [guides](/docs/callbacks) for more details. Example value: `2024-03-15T15:55:58.623375258Z`.'
+              requestBody:
+                $ref: '#/components/requestBodies/OrganizationRepresentativeSubmissionStatusChangedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+    delete:
+      summary: 'Callback: Remove'
+      description: Remove a callback subscription for this entity.
+      tags:
+      - Organizations
+      operationId: remove-organization-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventTypes:
+                  type: array
+                  description: The event types to unsubscribe from.
+                  items:
+                    type: string
+                    enum:
+                    - ORGANIZATION_ADDED
+                    - ORGANIZATION_CONFIG_CHANGED
+                    - ORGANIZATION_DETAILS_CHANGED
+                    - ORGANIZATION_LIMIT_CHANGED
+                    - ORGANIZATION_STATE_CHANGED
+                    - ORGANIZATION_SYNCTYPE_CHANGED
+                    - ORGANIZATION_BALANCE_UPDATED
+                    - AUTHORIZATION_PENDING
+                    - AUTHORIZATION_GRANTED
+                    - AUTHORIZATION_REVOKED
+                    - REPRESENTATIVE_SUBMISSION_STATUS_CHANGED
+                    - REPRESENTATIVE_LEGITIMATION_STATUS_CHANGED
+                    - DOCUMENT_CUSTOMER_STATUS_CHANGED
+                    - DIRECT_DEBIT_STATUS_CHANGED
+                    - BANK_CONNECTION_STATUS_CHANGED
+              required:
+              - eventTypes
+      responses:
+        '200':
+          description: Ok
+    servers:
+    - url: https://partner-api.getpliant.com/api
+      description: Pliant Production Server
+    - url: https://sandbox.partner-api.getpliant.com/api
+      description: Pliant Sandbox Server
+    - url: https://pci-api.getpliant.com
+      description: PCI Vault Production Server
+    - url: https://pci-sandbox.partner-api.getpliant.com
+      description: PCI Vault Sandbox Server
+  /organizations/{organizationId}/bank-accounts:
+    get:
+      summary: Get Organization's External Bank Accounts
+      description: Fetch the bank accounts of the provided organization which are external to Pliant, meaning not owned by Pliant but the organization itself. The bank accounts can then be used for instance for cashback redemption etc.
+      tags:
+      - Organizations
+      operationId: get-organizations-external-bank-accounts
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The organization for which the bank accounts should be fetched.
+        schema:
+          type: string
+          format: uuid
+      - name: limit
+        in: query
+        description: The maximum number of items to return per page. The default value if not provided is 100, the maximum allowed value is 1000.
+        schema:
+          type: integer
+      - name: page
+        in: query
+        description: The page number to return, starting with 0, this counts up to the total number of pages. The total number of pages is determined by the total number of records divided by the limit.
+        schema:
+          type: integer
+      - name: sortBy
+        in: query
+        description: The field to sort by.
+        schema:
+          type: string
+          enum:
+          - id
+          - createdAt
+          - bankName
+      - name: sortDirection
+        in: query
+        description: The direction to sort by.
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrganizationBankAccount'
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates whether there is a next page available.
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    servers:
+    - url: https://partner-api.getpliant.com/api
+      description: Pliant Production Server
+    - url: https://sandbox.partner-api.getpliant.com/api
+      description: Pliant Sandbox Server
+    - url: https://pci-api.getpliant.com
+      description: PCI Vault Production Server
+    - url: https://pci-sandbox.partner-api.getpliant.com
+      description: PCI Vault Sandbox Server
+  /organizations/{organizationId}/bank-accounts/{bankAccountId}:
+    get:
+      summary: Get Organization's External Bank Account
+      description: Fetch a specific external bank account by its ID for the provided organization.
+      tags:
+      - Organizations
+      operationId: get-organization-external-bank-account
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The unique identifier of the organization.
+        schema:
+          type: string
+          format: uuid
+      - name: bankAccountId
+        in: path
+        required: true
+        description: The unique identifier of the bank account.
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationBankAccount'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    servers:
+    - url: https://partner-api.getpliant.com/api
+      description: Pliant Production Server
+    - url: https://sandbox.partner-api.getpliant.com/api
+      description: Pliant Sandbox Server
+    - url: https://pci-api.getpliant.com
+      description: PCI Vault Production Server
+    - url: https://pci-sandbox.partner-api.getpliant.com
+      description: PCI Vault Sandbox Server
+  /organizations/{organizationId}/risk:
+    get:
+      summary: Organization Risk Status
+      description: 'Returns information about risk & compliance status, including onboarding progress of a given organization. Please note: the onboarding data is only available, if the respective organization has explicitly granted the partner access to this data.'
+      tags:
+      - Organizations
+      operationId: get-organization-risk-status
+      parameters:
+      - name: organizationId
+        in: path
+        required: true
+        description: The unique identifier of the organization.
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/OrganizationRiskDetail'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    servers:
+    - url: https://partner-api.getpliant.com/api
+      description: Pliant Production Server
+    - url: https://sandbox.partner-api.getpliant.com/api
+      description: Pliant Sandbox Server
+    - url: https://pci-api.getpliant.com
+      description: PCI Vault Production Server
+    - url: https://pci-sandbox.partner-api.getpliant.com
+      description: PCI Vault Sandbox Server
+components:
+  schemas:
+    OrganizationAuthorizationCallback:
+      type: object
+      properties:
+        partnerId:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+    Organization:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+          description: The id of the organization.
+        name:
+          type: string
+          description: The name of the organization.
+        status:
+          type: string
+          description: The status of the organization, see [our guides](/docs/organization-entity) for more details.
+          enum:
+          - ONBOARDING_STARTED
+          - ONBOARDING_RISK_AND_COMPLIANCE
+          - ONBOARDING_MANDATES_AND_TERMS
+          - ACTIVE
+          - DEACTIVATED
+          - CANCELLED
+          example: ONBOARDING_STARTED
+        vatId:
+          type:
+          - string
+          - 'null'
+          description: The VAT ID of the organization, if available.
+        cardAccounts:
+          type: array
+          description: The [card accounts](/docs/card-account) of the organization. At least one card account is required.
+          items:
+            type: object
+            description: A [card account](/docs/card-account) of the organization.
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: The id of the card account.
+              name:
+                type: string
+                description: The name of the card account.
+              status:
+                type: string
+                description: The status of the card account. A card account with `status` `SUPERSEDED` was replaced by a successor card account and is kept for historical reasons only. Read the [card account](/reference/get-card-account-details) to find its successor (`supersededBy`).
+                enum:
+                - ACTIVE
+                - PENDING
+                - DEACTIVATED
+                - CANCELLED
+                - SUPERSEDED
+              defaultAccount:
+                type: boolean
+                description: Indicates whether this is the default card account. There is always one active default card account.
+        paymentProgramId:
+          type: string
+          format: uuid
+          description: The id of the payment program this organization belongs to.
+    OrganizationRiskDetail:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          description: The ID of the organization.
+          format: uuid
+        name:
+          type: string
+          description: The name of the organization.
+        status:
+          $ref: '#/components/schemas/Organization/properties/status'
+        riskAndCompliance:
+          type:
+          - object
+          - 'null'
+          description: Risk and compliance process details on the company (especially helpful during onboarding process).
+          properties:
+            representatives:
+              description: During Pliant's risk and compliance check we may or may not need data from users that don't necessarily need to be created as cardholders for the organization that is applying for credit cards (e.g. UBOs). Those people are referred to as representatives.
+              type: array
+              default: []
+              items:
+                type: object
+                properties:
+                  representativeId:
+                    type: string
+                    description: The ID of the representative.
+                  representativeSubmissionStatus:
+                    type: string
+                    enum:
+                    - INFO_REQUESTED
+                    - INFO_FILLED
+                    - INFO_SUBMITTED
+                    - INTERNAL_ONLY
+                    description: '* `INFO_REQUESTED` - Additional information are requested from the representative.
+
+                      * `INFO_FILLED` - The representative has provided and saved some of the information requested by Pliant, but it is not fully submitted yet.
+
+                      * `INFO_SUBMITTED` - The representative has filled all additional information that was requested by Pliant and has submitted it.
+
+                      * `INTERNAL_ONLY` - Data about the representative is only used internally by Pliant and is not requested from the representative.
+
+                      '
+                  representativeLegitimationStatus:
+                    type:
+                    - string
+                    - 'null'
+                    enum:
+                    - NOT_REQUESTED
+                    - ONGOING
+                    - COMPLETED
+                    - CANCELLED
+                    description: '* `NOT_REQUESTED` - The legitimation documents have not been requested yet.
+
+                      * `ONGOING` - The legitimation process is ongoing.
+
+                      * `COMPLETED` - The legitimation process is completed (does not mean successfully though, please check `representativeSubmissionStatus`).
+
+                      * `CANCELLED` - The legitimation process is cancelled.
+
+                      '
+            sepaDirectDebitMandateStatus:
+              type: string
+              enum:
+              - REQUESTED
+              - SIGNED_PARTIALLY
+              - SIGNED
+              - NOT_NEEDED
+              description: '* `REQUESTED` - The direct debit mandate is requested.
+
+                * `SIGNED_PARTIALLY` - The direct debit mandate is partially signed.
+
+                * `SIGNED` - The direct debit mandate is signed.
+
+                * `NOT_NEEDED` - In some cases a direct debit mandate is not required from the customer (e.g. for organizations using `PREFUND`).
+
+                '
+            documentsCustomer:
+              description: Additional documents requested from the customer.
+              type: array
+              items:
+                type:
+                - object
+                - 'null'
+                properties:
+                  documentId:
+                    type: string
+                  category:
+                    type: string
+                  subcategory:
+                    type:
+                    - string
+                    - 'null'
+                  status:
+                    type:
+                    - string
+                    - 'null'
+                    enum:
+                    - DRAFT
+                    - REQUESTED
+                    - SUBMITTED
+                    - VERIFIED
+                    - NOT_NEEDED
+                    description: "* `DRAFT` - The document is in draft status and Pliant is about to request it from the customer.\n* `REQUESTED` - The document is requested from the customer.\n* `SUBMITTED` - The document is submitted by the customer.\n* `VERIFIED` - The document is verified by Pliant.                \n* `NOT_NEEDED` - The document is not needed anymore.\n"
+        documentsLegal:
+          description: Flag to determine if the organizations has agreed to the legal documents required by Pliant.
+          type: string
+          enum:
+          - REQUESTED
+          - SIGNED
+        bankConnectionStatus:
+          type: string
+          enum:
+          - NOT_REQUIRED
+          - ACTIVE
+          - INACTIVE
+          description: '* `NOT_REQUIRED` - Connecting a bank account is not needed for the given organization.
+
+            * `ACTIVE` - At least one bank account is successfully connected.
+
+            * `INACTIVE` - The bank account connection is required but not done yet.
+
+            '
+    OrganizationUpdate:
+      type: object
+      required:
+      - billingEmail
+      - deliveryAddress
+      properties:
+        billingEmail:
+          type: string
+          description: The email address to which invoices and other billing information are sent.
+          example: billing@company.com
+        partnersOrganizationId:
+          type:
+          - string
+          - 'null'
+          description: An identifier of the organization in the partner's system. This is defined by the partner and can be used to link the organization in the partner's system with the organization in the Pliant system.
+          deprecated: true
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+          description: An identifier of the organization in the partner's system. This is defined by the partner and can be used to link the organization in the partner's system with the organization in the Pliant system.
+        missingReceiptNotifications:
+          type:
+          - boolean
+          - 'null'
+          description: If set to `true`, the organization will receive notifications about missing receipts. If set to `false`, the organization will not receive notifications about missing receipts.
+        vatId:
+          type:
+          - string
+          - 'null'
+          description: The valid VAT ID of the organization.
+          example: DE123456789
+        tradeName:
+          type:
+          - string
+          - 'null'
+          description: "An organization may use a different name, e.g. for marketing purposes. In case a trade name is provided, this will be the one printed on the employees' physical cards, instead of the organization's legal name.\nThis field is only optional, as long as the legal `name` of the organization is not longer than 20 characters. \n\n**If the legal `name` is longer than 20 characters, the trade name is required:**\n  - The trade name maximum length is 20 characters, since it is printed on the physical cards.\n  - Trade name cannot be `null` or empty.\n"
+          maxLength: 20
+        deliveryAddress:
+          type: object
+          description: The delivery address of the organization. Used to deliver physical cards.
+          required:
+          - streetName
+          - streetNumber
+          - postalCode
+          - city
+          - country
+          properties:
+            country:
+              type: string
+              description: The country of the address in ISO 3166-1 alpha-2 notation, e.g. `DE` for Germany.
+              minLength: 2
+              maxLength: 2
+              example: DE
+            city:
+              type: string
+              description: The city of the address.
+            postalCode:
+              type: string
+              description: The postal code of the address.
+            streetName:
+              type: string
+              description: The street name of the address.
+            streetNumber:
+              type: string
+              description: The street number of the address.
+            streetAdditional:
+              type:
+              - string
+              - 'null'
+              description: Optional additional street information.
+    OrganizationCallback:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+          description: The unique id of the organization.
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+          description: If provided, the unique id used by the partner to identify the organization on partner side.
+        status:
+          $ref: '#/components/schemas/Organization/properties/status'
+        syncType:
+          type:
+          - string
+          - 'null'
+          description: The type of synchronization that the organization has with Pliant. Currently always `FULL`.
+          enum:
+          - FULL
+          - PARTIAL
+        integrationType:
+          type: string
+          description: Constant value to identify the integration type.
+          enum:
+          - PARTNER
+        cardAccounts:
+          $ref: '#/components/schemas/Organization/properties/cardAccounts'
+        fxFeePercentage:
+          type:
+          - number
+          - 'null'
+          description: 'The per-organization fee (as a percentage of the transaction amount) that is charged for foreign exchange transactions. This value is specific to this organization. Example: `2.1`.'
+          format: float
+          example: 2.1
+          minimum: 0
+          maximum: 100
+    OrganizationBalanceCallback:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+        creditLimit:
+          type: object
+          description: The credit limit for the organization, if applicable. For prefund organizations this value is always 0 EUR. See our [guides](/docs/organization-entity#account-limits-and-balance) for more details regarding limits and balances.
+          properties:
+            value:
+              type: number
+              description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+            currency:
+              type: string
+              description: The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar.
+        availableLimit:
+          type: object
+          description: The available spending capacity for the organization. See our [guides](/docs/organization-entity#account-limits-and-balance) for more details regarding limits and balances.
+          properties:
+            value:
+              type: number
+              description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+            currency:
+              type: string
+              description: The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar.
+        balance:
+          type: object
+          description: The balance of the organization, which represents movements (positive and negative) on the account. See our [guides](/docs/organization-entity#account-limits-and-balance) for more details regarding limits and balances.
+          properties:
+            value:
+              type: number
+              description: The value of the monetary amount, converted to minor units of the currency. For instance 1.00 EUR is 100 cents, thus the value here is `100`. See our [guides](/docs/monetary-values) for more details about how to handle monetary amounts.
+            currency:
+              type: string
+              description: The currency of the monetary amount in ISO 4217 format, for example `EUR` for Euro or `USD` for US Dollar.
+    Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: The error code
+        exceptionId:
+          type: string
+          format: uuid
+          description: The id of the exception that was thrown
+        message:
+          type: string
+          description: The cause of the error or further explanations on the error
+    OrganizationRepresentativeLegitimationStatusChangedCallback:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+        representativeId:
+          type: string
+          format: uuid
+        statusChange:
+          type: object
+          properties:
+            beforeChange:
+              type:
+              - string
+              - 'null'
+            afterChange:
+              type:
+              - string
+              - 'null'
+    OrganizationCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Pliant-assigned organization ID.
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        name:
+          type: string
+          example: Sample GmbH
+        country:
+          type: string
+          example: DE
+        currency:
+          type: string
+          example: EUR
+        billingAddress:
+          type: object
+          properties:
+            streetName:
+              type: string
+            streetNumber:
+              type: string
+            streetAdditional:
+              type: string
+            postalCode:
+              type: string
+            city:
+              type: string
+            subdivisionCode:
+              type: string
+            country:
+              type: string
+              example: DE
+        legalForm:
+          type: string
+          example: GmbH
+        vatId:
+          type: string
+          example: DE123456789
+        tradeRegisterNumber:
+          type: string
+          example: HRB123456
+        nationalRegisterCourt:
+          type: string
+          example: Amtsgericht München
+        foundationDate:
+          type: string
+          format: date
+          example: '2015-03-15'
+        accountGroup:
+          type: string
+          example: BC_PLIANT_OY
+        accountType:
+          type: string
+          enum:
+          - CREDIT
+          - PREFUNDED
+        partnerOrganizationId:
+          type: string
+          example: internal-123
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            accountManagerEmail: account.manager@org.de
+        status:
+          $ref: '#/components/schemas/Organization/properties/status'
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the organization was created (ISO 8601).
+          example: '2026-03-03T10:15:00.000Z'
+    OrganizationRepresentativeSubmissionStatusChangedCallback:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+        representativeId:
+          type: string
+          format: uuid
+        statusChange:
+          type: object
+          properties:
+            beforeChange:
+              type:
+              - string
+              - 'null'
+            afterChange:
+              type:
+              - string
+              - 'null'
+    OrganizationDocumentCustomerStatusCallback:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+        category:
+          type:
+          - string
+          - 'null'
+        statusChange:
+          type: object
+          properties:
+            beforeChange:
+              type:
+              - string
+              - 'null'
+            afterChange:
+              type:
+              - string
+              - 'null'
+    OrganizationDirectDebitStatusCallback:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+        statusChange:
+          type: object
+          properties:
+            beforeChange:
+              type:
+              - string
+              - 'null'
+            afterChange:
+              type:
+              - string
+              - 'null'
+    OrganizationCreate:
+      type: object
+      required:
+      - name
+      - country
+      - currency
+      - billingAddress
+      - legalForm
+      - tradeRegisterNumber
+      - foundationDate
+      - partnerOrganizationId
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Legal entity name.
+          example: Sample GmbH
+        country:
+          type: string
+          pattern: ^[A-Z]{2}$
+          description: ISO 3166-1 alpha-2 country code.
+          example: DE
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+          description: ISO 4217 currency code.
+          example: EUR
+        billingAddress:
+          type: object
+          required:
+          - streetName
+          - streetNumber
+          - postalCode
+          - city
+          - country
+          properties:
+            streetName:
+              type: string
+              maxLength: 128
+              description: Street name.
+            streetNumber:
+              type: string
+              maxLength: 128
+              description: Street number.
+            streetAdditional:
+              type: string
+              maxLength: 128
+              description: Additional address line (e.g. apartment, floor).
+            postalCode:
+              type: string
+              maxLength: 16
+              description: Postal code. Validated against country-specific format.
+            city:
+              type: string
+              maxLength: 64
+              description: City.
+            subdivisionCode:
+              type: string
+              maxLength: 6
+              description: 'ISO 3166-2 subdivision code without the country prefix (e.g. `NY` for New York, US). Optional — recommended for US addresses.
+
+                '
+            country:
+              type: string
+              pattern: ^[A-Z]{2}$
+              description: ISO 3166-1 alpha-2 country code. Must match the top-level `country` field.
+              example: DE
+        legalForm:
+          type: string
+          maxLength: 128
+          description: 'Legal form of the entity. Use a value for the organization''s `country` from
+
+            [Legal forms by country](/docs/legal-forms-by-country).
+
+            Preserve the exact spelling, capitalization, spaces, and punctuation.
+
+            '
+          example: GmbH
+        vatId:
+          type: string
+          description: VAT identification number.
+          example: DE123456789
+        tradeRegisterNumber:
+          type: string
+          maxLength: 64
+          description: Trade register number of the legal entity.
+          example: HRB123456
+        nationalRegisterCourt:
+          type: string
+          description: National register court. Required for DE only.
+          example: Amtsgericht München
+        foundationDate:
+          type: string
+          format: date
+          description: Foundation date of the legal entity in ISO 8601 format (YYYY-MM-DD). Must be in the past.
+          example: '2015-03-15'
+        partnerOrganizationId:
+          type: string
+          maxLength: 128
+          description: "Your permanent reference ID for this organization (e.g. your internal business customer ID). Stored verbatim, \nechoed back on all responses, and enforced as unique per partner — prevents logical duplicates across separate API calls. \nDistinct from the Idempotency-Key header, which handles network-level retry safety.\n"
+          example: internal-123
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          description: 'Arbitrary key-value pairs for storing additional information on this Pliant object.
+
+            For your own use and reference.
+
+            '
+          example:
+            accountManagerEmail: account.manager@org.de
+        leadData:
+          type: object
+          description: Additional lead information used for sales qualification and CRM enrichment.
+          required:
+          - accountType
+          - customerAcquisitionChannel
+          - customerRelationshipLength
+          - contacts
+          properties:
+            accountType:
+              type: string
+              description: If known, which card product is requested by customer. Either with credit line (=credit) or without credit line (=prefund).
+              enum:
+              - CREDIT
+              - PREFUNDED
+            industry:
+              type: string
+              description: Industry of the legal entity.
+              enum:
+              - ACCOUNTING
+              - AIRLINES_AVIATION
+              - ALTERNATIVE_DISPUTE_RESOLUTION
+              - ALTERNATIVE_MEDICINE
+              - ANIMATION
+              - APPAREL_FASHION
+              - ARCHITECTURE_PLANNING
+              - ARTS_AND_CRAFTS
+              - AUTOMOTIVE
+              - AVIATION_AEROSPACE
+              - BANKING
+              - BIOTECHNOLOGY
+              - BROADCAST_MEDIA
+              - BUILDING_MATERIALS
+              - BUSINESS_SERVICES
+              - BUSINESS_SUPPLIES_AND_EQUIPMENT
+              - CAPITAL_MARKETS
+              - CHEMICALS
+              - CIVIC_SOCIAL_ORGANIZATION
+              - CIVIL_ENGINEERING
+              - COMMERCIAL_REAL_ESTATE
+              - COMPUTER_GAMES
+              - COMPUTER_HARDWARE
+              - COMPUTER_NETWORK_SECURITY
+              - COMPUTER_NETWORKING
+              - COMPUTER_SOFTWARE
+              - CONSTRUCTION
+              - CONSUMER_ELECTRONICS
+              - CONSUMER_GOODS
+              - CONSUMER_SERVICES
+              - CONVENIENCE_STORES_GAS_STATIONS_LIQUOR_STORES
+              - COSMETICS
+              - DAIRY
+              - DEFENSE_SPACE
+              - DESIGN
+              - E_COMMERCE
+              - E_LEARNING
+              - EDUCATION_MANAGEMENT
+              - ELECTRICAL_ELECTRONIC_MANUFACTURING
+              - ENTERTAINMENT
+              - ENVIRONMENTAL_SERVICES
+              - EVENTS_SERVICES
+              - EXECUTIVE_OFFICE
+              - FACILITIES_SERVICES
+              - FARMING
+              - FINANCIAL_SERVICES
+              - FINE_ART
+              - FISHERY
+              - FOOD_BEVERAGES
+              - FOOD_PRODUCTION
+              - FUND_RAISING
+              - FURNITURE
+              - GAMBLING_CASINOS
+              - GLASS_CERAMICS_CONCRETE
+              - GOVERNMENT_ADMINISTRATION
+              - GOVERNMENT_RELATIONS
+              - GRAPHIC_DESIGN
+              - HEALTH_WELLNESS_AND_FITNESS
+              - HIGHER_EDUCATION
+              - HOSPITAL_HEALTH_CARE
+              - HOSPITALITY
+              - HUMAN_RESOURCES
+              - IMPORT_AND_EXPORT
+              - INDIVIDUAL_FAMILY_SERVICES
+              - INDUSTRIAL_AUTOMATION
+              - INFORMATION_SERVICES
+              - INFORMATION_TECHNOLOGY_AND_SERVICES
+              - INSURANCE
+              - INTERNATIONAL_AFFAIRS
+              - INTERNATIONAL_TRADE_AND_DEVELOPMENT
+              - INTERNET
+              - INVESTMENT_BANKING
+              - INVESTMENT_MANAGEMENT
+              - IT_SERVICE
+              - JUDICIARY
+              - LAW_ENFORCEMENT
+              - LAW_PRACTICE
+              - LEGAL_SERVICES
+              - LEGISLATIVE_OFFICE
+              - LEISURE_TRAVEL_TOURISM
+              - LIBRARIES
+              - LOGISTICS_AND_SUPPLY_CHAIN
+              - LUXURY_GOODS_JEWELRY
+              - MACHINERY
+              - MANAGEMENT_CONSULTING
+              - MARITIME
+              - MARKET_RESEARCH
+              - MARKETING_AND_ADVERTISING
+              - MECHANICAL_OR_INDUSTRIAL_ENGINEERING
+              - MEDIA_PRODUCTION
+              - MEDICAL_DEVICES
+              - MEDICAL_PRACTICE
+              - MENTAL_HEALTH_CARE
+              - MILITARY
+              - MINING_METALS
+              - MOTION_PICTURES_AND_FILM
+              - MUSEUMS_AND_INSTITUTIONS
+              - MUSIC
+              - NANOTECHNOLOGY
+              - NEWSPAPERS
+              - NON_PROFIT_ORGANIZATION_MANAGEMENT
+              - OIL_ENERGY
+              - ONLINE_MEDIA
+              - OUTSOURCING_OFFSHORING
+              - PACKAGE_FREIGHT_DELIVERY
+              - PACKAGING_AND_CONTAINERS
+              - PAPER_FOREST_PRODUCTS
+              - PERFORMING_ARTS
+              - PHARMACEUTICALS
+              - PHILANTHROPY
+              - PHOTOGRAPHY
+              - PLASTICS
+              - POLITICAL_ORGANIZATION
+              - PRIMARY_SECONDARY_EDUCATION
+              - PRINTING
+              - PROFESSIONAL_TRAINING_COACHING
+              - PROGRAM_DEVELOPMENT
+              - PUBLIC_POLICY
+              - PUBLIC_RELATIONS_AND_COMMUNICATIONS
+              - PUBLIC_SAFETY
+              - PUBLISHING
+              - RAILROAD_MANUFACTURE
+              - RANCHING
+              - REAL_ESTATE
+              - RECREATIONAL_FACILITIES_AND_SERVICES
+              - RELIGIOUS_INSTITUTIONS
+              - RENEWABLES_ENVIRONMENT
+              - RESEARCH
+              - RESTAURANTS
+              - RETAIL
+              - SECURITY_AND_INVESTIGATIONS
+              - SEMICONDUCTORS
+              - SHIPBUILDING
+              - SPORTING_GOODS
+              - SPORTS
+              - STAFFING_AND_RECRUITING
+              - SUPERMARKETS
+              - TELECOMMUNICATIONS
+              - TEXTILES
+              - THINK_TANKS
+              - TOBACCO
+              - TRANSLATION_AND_LOCALIZATION
+              - TRANSPORTATION
+              - TRANSPORTATION_TRUCKING_RAILROAD
+              - UTILITIES
+              - VENTURE_CAPITAL_PRIVATE_EQUITY
+              - VETERINARY
+              - WAREHOUSING
+              - WHOLESALE
+              - WINE_AND_SPIRITS
+              - WIRELESS
+              - WRITING_AND_EDITING
+            yearlyRevenue:
+              type: object
+              description: Estimated yearly revenue.
+              required:
+              - value
+              - currency
+              properties:
+                value:
+                  type: integer
+                  format: int64
+                  description: Amount in minor units (cents).
+                  example: 5000000
+                currency:
+                  type: string
+                  pattern: ^[A-Z]{3}$
+                  description: ISO 4217 currency code.
+                  example: EUR
+            numberOfEmployees:
+              type: integer
+              description: Number of employees of the referred legal entity.
+              example: 50
+            plannedNumberOfCards:
+              type: integer
+              description: Estimated number of virtual and/or physical credit cards the referred legal entity will issue.
+              example: 20
+            paymentFrequency:
+              type: string
+              enum:
+              - MONTHLY
+              - BI-WEEKLY
+              - WEEKLY
+              - DAILY
+              - PREFUNDED
+              description: 'Desired payment frequency. Use `PREFUNDED` for prefunded account types.
+
+                '
+              example: MONTHLY
+            expectedMonthlyTransactionVolume:
+              type: object
+              required:
+              - value
+              - currency
+              properties:
+                value:
+                  type: integer
+                  format: int64
+                  description: Amount in minor units (cents).
+                  example: 5000000
+                currency:
+                  type: string
+                  pattern: ^[A-Z]{3}$
+                  description: ISO 4217 currency code.
+                  example: EUR
+            customerAcquisitionChannel:
+              type: string
+              enum:
+              - OUTBOUND
+              - INBOUND
+              - REFERRAL
+              - PARTNER
+              - CAMPAIGN
+              description: Channel through which the customer was acquired.
+              example: INBOUND
+            customerRelationshipLength:
+              type: integer
+              minimum: 0
+              description: Length of the existing relationship with the customer, in months.
+              example: 12
+            contacts:
+              type: array
+              minItems: 1
+              maxItems: 5
+              description: List of contact persons for the lead (relevant for HubSpot). Maximum 5 contacts.
+              items:
+                type: object
+                required:
+                - firstName
+                - lastName
+                - email
+                properties:
+                  salutation:
+                    type: string
+                    enum:
+                    - MRS
+                    - MR
+                    description: Salutation of the contact person.
+                  firstName:
+                    type: string
+                    description: First name of the contact person.
+                  lastName:
+                    type: string
+                    description: Last name of the contact person.
+                  email:
+                    type: string
+                    format: email
+                    description: Email address of the contact person.
+                  phone:
+                    type: string
+                    description: Phone number of the contact person.
+                  contactRole:
+                    type: string
+                    enum:
+                    - CONTACT
+                    - LEGAL_REP
+                    default: CONTACT
+                    description: 'Role of the person within the legal entity.
+
+                      - `LEGAL_REP`: Legal representative; the only role that can complete onboarding (e.g. sign terms and conditions).
+
+                      - `CONTACT`: Default for all other relevant contacts who are not legal representatives.
+
+                      '
+            comment:
+              type: string
+              description: Any additional context or notes to consider for this lead.
+            partnerContact:
+              type: object
+              required:
+              - name
+              - email
+              properties:
+                name:
+                  type: string
+                  description: Full name of the partner contact responsible for the lead.
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the partner contact.
+    OrganizationBankConnectionStatusCallback:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+        statusChange:
+          type: object
+          properties:
+            beforeChange:
+              type: string
+              enum:
+              - NOT_REQUIRED
+              - ACTIVE
+              - INACTIVE
+            afterChange:
+              type: string
+              enum:
+              - NOT_REQUIRED
+              - ACTIVE
+              - INACTIVE
+    OrganizationBankAccount:
+      type: object
+      properties:
+        bankAccountId:
+          type: string
+          format: uuid
+          description: The unique identifier of the bank account.
+        bankName:
+          type: string
+          description: The name of the bank.
+        bic:
+          type: string
+          description: The [BIC](https://en.wikipedia.org/wiki/ISO_9362) of the bank account within the [SWIFT](https://en.wikipedia.org/wiki/SWIFT) territory.
+        accountNumber:
+          type: string
+          description: The account number of the bank account. See `accountNumberType` for the type of the account number.
+        accountNumberType:
+          type: string
+          description: The type of the account number. Within [SEPA territory](https://en.wikipedia.org/wiki/Single_Euro_Payments_Area), this is the IBAN. Outside of SEPA, this can be [CLABE](https://en.wikipedia.org/wiki/CLABE) or DOMESTIC.
+          enum:
+          - IBAN
+          - CLABE
+          - DOMESTIC
+        currency:
+          type:
+          - string
+          - 'null'
+          description: The currency of the bank account.
+        transfersAllowed:
+          type: string
+          description: This field indicates if the bank account is allowed to receive bank transfers (only relevant for prefund or hybrid accounts) or not. Possible statuses are `REVIEW`, `AUTHORIZED`, `BLOCKED`. - `REVIEW` requires a manual approval from Pliant. - `AUTHORIZED` is a fully usable bank account. - `BLOCKED` bank accounts cannot be used for any transfers.
+          enum:
+          - REVIEW
+          - AUTHORIZED
+          - BLOCKED
+    Event:
+      type: object
+      properties:
+        eventType:
+          type: string
+          description: The type of event.
+  requestBodies:
+    OrganizationRepresentativeLegitimationStatusChangedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OrganizationRepresentativeLegitimationStatusChangedCallback'
+    OrganizationBankConnectionStatusCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OrganizationBankConnectionStatusCallback'
+    OrganizationAuthorizationUpdatedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OrganizationAuthorizationCallback'
+    OrganizationRepresentativeSubmissionStatusChangedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OrganizationRepresentativeSubmissionStatusChangedCallback'
+    OrganizationBalanceUpdatedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OrganizationBalanceCallback'
+    OrganizationUpdatedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OrganizationCallback'
+    OrganizationDocumentCustomerStatusCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OrganizationDocumentCustomerStatusCallback'
+    OrganizationDirectDebitStatusCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OrganizationDirectDebitStatusCallback'
+  responses:
+    '403':
+      description: Forbidden. The API consumer is not allowed to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '404':
+      description: Not Found. The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '500':
+      description: Internal Server Error. The request was not completed due to an internal error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '429':
+      description: Too Many Requests. The API consumer has sent too many requests in a given amount of time. Please check our [API guidelines](/docs/pliant-api-guidelines#api-rate-limits).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Detailed description of the error and breached rate limit.
+    '401':
+      description: Unauthorized. The API consumer is not authorized to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '400':
+      description: Bad Request. The API consumer sent a malformed request which could not be processed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: This API uses oAuth2 with client credentials flow to [obtain the Bearer Token](/docs/authenticated-api-usage).
+      bearerFormat: JWT
+x-refined-from:
+- hihealth-pliant-customer-api-openapi.yml
+- hihealth-pliant-partner-api-openapi.yml
+x-provenance:
+  method: searched
+  source: https://customer-api.getpliant.com/reference
+  harvested: '2026-10-14'
+  tool: harvest-readme-openapi.py
+  note: Assembled verbatim from the OpenAPI definition ReadMe embeds in each operation page of the provider's developer portal; paths and components merged by API title, nothing authored.
+  assembled_from:
+  - https://customer-api.getpliant.com/reference/activate-physical-card.md
+  - https://customer-api.getpliant.com/reference/assign-project-team.md
+  - https://customer-api.getpliant.com/reference/assign-to-team.md
+  - https://customer-api.getpliant.com/reference/bulk-upsert-subscriptions.md
+  - https://customer-api.getpliant.com/reference/card-pan-and-cvv-pci-vault.md
+  - https://customer-api.getpliant.com/reference/card-pan-tokenized-from-pci-proxy.md
+  - https://customer-api.getpliant.com/reference/claim-card-as-copilot.md
+  - https://customer-api.getpliant.com/reference/create-account-entry-subscription.md
+  - https://customer-api.getpliant.com/reference/create-accounting-project-subscription.md
+  - https://customer-api.getpliant.com/reference/create-accounting-team-subscription.md
+  - https://customer-api.getpliant.com/reference/create-accounting-transaction-subscription.md
+  - https://customer-api.getpliant.com/reference/create-card-account-subscription.md
+  - https://customer-api.getpliant.com/reference/create-card-account-transfer.md
+  - https://customer-api.getpliant.com/reference/create-card-account.md
+  - https://customer-api.getpliant.com/reference/create-card-copilot-subscription.md
+  - https://customer-api.getpliant.com/reference/create-card-subscription.md
+  - https://customer-api.getpliant.com/reference/create-cardholder-subscription.md
+  - https://customer-api.getpliant.com/reference/create-custom-field-option.md
+  - https://customer-api.getpliant.com/reference/create-custom-field.md
+  - https://customer-api.getpliant.com/reference/create-payment-subscription.md
+  - https://customer-api.getpliant.com/reference/create-project.md
+  - https://customer-api.getpliant.com/reference/create-receipt-automatching-subscription.md
+  - https://customer-api.getpliant.com/reference/create-receipt-subscription.md
+  - https://customer-api.getpliant.com/reference/create-statement-subscription.md
+  - https://customer-api.getpliant.com/reference/create-team.md
+  - https://customer-api.getpliant.com/reference/create-transaction-subscription.md
+  - https://customer-api.getpliant.com/reference/deactivate-card-account.md
+  - https://customer-api.getpliant.com/reference/deactivate-cardholder.md
+  - https://customer-api.getpliant.com/reference/deactivate-team.md
+  - https://customer-api.getpliant.com/reference/delete-custom-field-option.md
+  - https://customer-api.getpliant.com/reference/delete-custom-field.md
+  - https://customer-api.getpliant.com/reference/delete-project.md
+  - https://customer-api.getpliant.com/reference/delete-receipt.md
+  - https://customer-api.getpliant.com/reference/delete-subscription.md
+  - https://customer-api.getpliant.com/reference/delete-team.md
+  - https://customer-api.getpliant.com/reference/delete-transaction-comment.md
+  - https://customer-api.getpliant.com/reference/generate-test-transactions-in-sandbox.md
+  - https://customer-api.getpliant.com/reference/get-account-entries.md
+  - https://customer-api.getpliant.com/reference/get-accounting-transactions-batch.md
+  - https://customer-api.getpliant.com/reference/get-available-cards.md
+  - https://customer-api.getpliant.com/reference/get-callback-details.md
+  - https://customer-api.getpliant.com/reference/get-callback-log.md
+  - https://customer-api.getpliant.com/reference/get-callback-subscriptions.md
+  - https://customer-api.getpliant.com/reference/get-callback.md
+  - https://customer-api.getpliant.com/reference/get-card-account-details.md
+  - https://customer-api.getpliant.com/reference/get-card-accounts-available-currencies.md
+  - https://customer-api.getpliant.com/reference/get-card-accounts.md
+  - https://customer-api.getpliant.com/reference/get-card-controls-by-card.md
+  - https://customer-api.getpliant.com/reference/get-card-pin.md
+  - https://customer-api.getpliant.com/reference/get-cardholder-details.md
+  - https://customer-api.getpliant.com/reference/get-cards.md
+  - https://customer-api.getpliant.com/reference/get-custom-field-options.md
+  - https://customer-api.getpliant.com/reference/get-custom-fields.md
+  - https://customer-api.getpliant.com/reference/get-multiple-card-details.md
+  - https://customer-api.getpliant.com/reference/get-organization-details.md
+  - https://customer-api.getpliant.com/reference/get-otp-for-pci-widget.md
+  - https://customer-api.getpliant.com/reference/get-payments-detail.md
+  - https://customer-api.getpliant.com/reference/get-payments.md
+  - https://customer-api.getpliant.com/reference/get-projects.md
+  - https://customer-api.getpliant.com/reference/get-receipt-automatcher-status.md
+  - https://customer-api.getpliant.com/reference/get-receipt-detail.md
+  - https://customer-api.getpliant.com/reference/get-receipts.md
+  - https://customer-api.getpliant.com/reference/get-single-card-details.md
+  - https://customer-api.getpliant.com/reference/get-statement-csv.md
+  - https://customer-api.getpliant.com/reference/get-statement-detail.md
+  - https://customer-api.getpliant.com/reference/get-statementpdf.md
+  - https://customer-api.getpliant.com/reference/get-statements.md
+  - https://customer-api.getpliant.com/reference/get-teams.md
+  - https://customer-api.getpliant.com/reference/get-transactions-detail-batch.md
+  - https://customer-api.getpliant.com/reference/get-transactions-detail.md
+  - https://customer-api.getpliant.com/reference/get-transactions.md
+  - https://customer-api.getpliant.com/reference/invite-cardholders.md
+  - https://customer-api.getpliant.com/reference/issue-card-instant-with-pci.md
+  - https://customer-api.getpliant.com/reference/issue-card-instant.md
+  - https://customer-api.getpliant.com/reference/issue-card.md
+  - https://customer-api.getpliant.com/reference/list-cardholders.md
+  - https://customer-api.getpliant.com/reference/list-organizations.md
+  - https://customer-api.getpliant.com/reference/load-cards-batch.md
+  - https://customer-api.getpliant.com/reference/lock-card.md
+  - https://customer-api.getpliant.com/reference/metadata-receipt-to-automatcher.md
+  - https://customer-api.getpliant.com/reference/receipt-as-merged-pdf.md
+  - https://customer-api.getpliant.com/reference/receipt-as-pdf.md
+  - https://customer-api.getpliant.com/reference/receipt-original.md
+  - https://customer-api.getpliant.com/reference/receipt-thumbnail.md
+  - https://customer-api.getpliant.com/reference/register-cardholders.md
+  - https://customer-api.getpliant.com/reference/remove-account-entry-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-accounting-project-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-accounting-team-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-accounting-transaction-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-card-account-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-card-copilot-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-cardholder-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-cards-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-payment-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-receipt-automatching-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-receipt-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-statement-subscription.md
+  - https://customer-api.getpliant.com/reference/remove-transaction-subscription.md
+  - https://customer-api.getpliant.com/reference/replace-card.md
+  - https://customer-api.getpliant.com/reference/resend-callbacks.md
+  - https://customer-api.getpliant.com/reference/search-callbacks.md
+  - https://customer-api.getpliant.com/reference/simulate-prefund-payment.md
+  - https://customer-api.getpliant.com/reference/simulate-transaction-status-transition.md
+  - https://customer-api.getpliant.com/reference/terminate-card.md
+  - https://customer-api.getpliant.com/reference/unassign-from-team.md
+  - https://customer-api.getpliant.com/reference/unassign-project-team.md
+  - https://customer-api.getpliant.com/reference/unlock-card.md
+  - https://customer-api.getpliant.com/reference/update-card-account.md
+  - https://customer-api.getpliant.com/reference/update-card-controls-by-card.md
+  - https://customer-api.getpliant.com/reference/update-card-copilots.md
+  - https://customer-api.getpliant.com/reference/update-card-label.md
+  - https://customer-api.getpliant.com/reference/update-card-limit.md
+  - https://customer-api.getpliant.com/reference/update-card-validity-period.md
+  - https://customer-api.getpliant.com/reference/update-card.md
+  - https://customer-api.getpliant.com/reference/update-cardholders.md
+  - https://customer-api.getpliant.com/reference/update-custom-field-option.md
+  - https://customer-api.getpliant.com/reference/update-custom-field.md
+  - https://customer-api.getpliant.com/reference/update-custom-fields-on-accounting-transaction.md
+  - https://customer-api.getpliant.com/reference/update-custom-fields-on-card.md
+  - https://customer-api.getpliant.com/reference/update-project.md
+  - https://customer-api.getpliant.com/reference/update-team.md
+  - https://customer-api.getpliant.com/reference/update-transaction-category.md
+  - https://customer-api.getpliant.com/reference/update-transaction-comment.md
+  - https://customer-api.getpliant.com/reference/update-transaction-partner-submission-status-batch.md
+  - https://customer-api.getpliant.com/reference/update-transaction-partner-submission-status.md
+  - https://customer-api.getpliant.com/reference/update-transaction-receipt-upload.md
+  - https://customer-api.getpliant.com/reference/upload-receipt-to-automatcher.md
+  - https://customer-api.getpliant.com/reference/upload-receipt.md
+  merge:
+    pages: 128
+    deduped: 452
+    conflicts_kept_first: 0

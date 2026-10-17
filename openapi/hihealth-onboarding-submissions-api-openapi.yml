@@ -1,0 +1,2269 @@
+openapi: 3.2.0
+info:
+  contact:
+    name: API Support
+    email: support@getpliant.com
+    url: https://www.getpliant.com
+  title: Pliant Partner Onboarding Submissions API
+  description: Pliant Partner API
+  version: 2.1.0
+  license:
+    name: MIT
+    url: https://opensource.org/license/MIT
+servers:
+- url: https://partner-api.getpliant.com/api
+  description: Pliant Production Server
+- url: https://sandbox.partner-api.getpliant.com/api
+  description: Pliant Sandbox Server
+- url: https://pci-api.getpliant.com
+  description: PCI Vault Production Server
+- url: https://pci-sandbox.partner-api.getpliant.com
+  description: PCI Vault Sandbox Server
+security:
+- bearerAuth: []
+tags:
+- name: Onboarding Submissions
+  description: This tag is for operations related to onboarding submissions, including submission lifecycle management, validation, callbacks, and reference data
+paths:
+  /partner/onboarding-submissions:
+    post:
+      summary: Create Onboarding Submission
+      description: 'Create a new onboarding submission for an organization.
+
+        The organization must be in an onboarding state (ONBOARDING_STARTED, ONBOARDING_RISK_AND_COMPLIANCE, ONBOARDING_MANDATES_AND_TERMS, DEACTIVATED, CANCELLED).
+
+        Only one active submission per organization is allowed.'
+      tags:
+      - Onboarding Submissions
+      operationId: create-onboarding-submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingSubmissionCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingSubmissionStatusResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    get:
+      summary: List Onboarding Submissions
+      description: 'Returns a paginated list of onboarding submissions. The response contains only identifiers and status per submission.
+
+        Use `status` and/or `organizationId` to filter results, and `page`/`limit` to paginate.'
+      tags:
+      - Onboarding Submissions
+      operationId: list-onboarding-submissions
+      parameters:
+      - name: status
+        in: query
+        description: Filter by submission lifecycle status.
+        required: false
+        schema:
+          type: string
+          enum:
+          - IN_PROGRESS
+          - SUBMITTED
+          - APPROVED
+          - REJECTED
+          - NEEDS_MORE_INFO
+          - WITHDRAWN
+      - name: organizationId
+        in: query
+        description: Filter by organization identifier (UUID).
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page number (0-based).
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: limit
+        in: query
+        description: Number of items per page.
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 100
+      responses:
+        '200':
+          description: A paginated list of submissions.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OnboardingSubmissionStatusResponse'
+                  hasNextPage:
+                    type: boolean
+                    description: Whether there are more results beyond the current page.
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /partner/onboarding-submissions/create-and-submit:
+    post:
+      summary: Create and Submit Onboarding Submission
+      description: 'Validates, creates and submits an onboarding submission for an organization in a single request.
+
+        The organization must still be in onboarding and must not already have a submission (only one submission per organization is allowed).
+
+
+        On validation failure nothing is persisted and a `422` is returned, with the individual validation failures listed in `message`.
+
+        Each failure is rendered as ` `, so the rule codes below can be matched against the response.
+
+
+        ## Mandatory fields
+
+
+        Only three fields are mandatory. **At least one** authorized signatory whose `signingAuthority` is `SOLE` or `JOINT` must provide:
+
+
+        * `authorizedSignatories[].person.names.firstName`
+
+        * `authorizedSignatories[].person.names.surname`
+
+        * `authorizedSignatories[].person.contact.email` — at most 50 characters, ASCII only
+
+
+        These three fields are not marked as required in the schema below, because the requirement applies to the submission as a
+
+        whole rather than to each entry: signatories who are not legal representatives may omit them. If no legal representative
+
+        supplies all three, each missing value is reported on its own field path (`MANDATORY`, or `VALID_EMAIL` / `MAX_LENGTH` for a
+
+        malformed or overlong address). If the payload contains no `SOLE` or `JOINT` signatory at all, a single
+
+        `AT_LEAST_ONE_INVITABLE_LEGAL_REP` failure is reported on `authorizedSignatories`.
+
+
+        ## Card names
+
+
+        The name embossed on a legal representative''s card is `firstName surname`. The selected name fields must total at most 24
+
+        characters, excluding the space between them. If the legal name fields exceed that limit, supply a shorter pair in
+
+        `authorizedSignatories[].person.names.firstNameCard` and `.surnameCard`. Both are optional, and they are only
+
+        used when **both** are supplied. A single card field is ignored and the legal pair is embossed instead. The
+
+        legal name is stored unchanged either way.
+
+
+        ## Validation of optional fields
+
+
+        Every other field is optional, but any field that *is* provided is validated. Constraints that can be expressed in the schema
+
+        (patterns, lengths, enums) are documented on the fields themselves. The following rules cannot be, and are listed here instead:
+
+
+        | Field | Rule code | Constraint |
+
+        | --- | --- | --- |
+
+        | `authorizedSignatories` | `AT_LEAST_ONE_INVITABLE_LEGAL_REP` | At least one signatory with `signingAuthority` `SOLE` or `JOINT`, carrying first name, surname and a valid email |
+
+        | `entity.taxProfile.vatRegistrationNumber` | `VALID_VAT_ID` | Must be a valid VAT ID for the organization''s country |
+
+        | `entity.addresses.billing.country` | `BILLING_ADDRESS_COUNTRY_MATCHES_ORGANIZATION_COUNTRY` | Must match the organization''s country. Only checked when a billing country is provided |
+
+        | `authorizedSignatories[].person.dateOfBirth` | `DATE_IN_PAST` | Must be a date in the past |
+
+        | `authorizedSignatories[].person.names.firstNameCard` | `CARD_HOLDER_NAME_MAX_LENGTH` | The name that will be embossed (card pair if both card fields are supplied, otherwise first name and surname) must not exceed 24 characters combined. Checked for signatories that are invited as legal representatives |
+
+
+        Note that these constraints are business validations: a violation returns `422`, not `400`.'
+      tags:
+      - Onboarding Submissions
+      operationId: create-and-submit-onboarding-submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingSubmissionCreateAndSubmitRequest'
+      responses:
+        '201':
+          description: The submission was created and submitted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingSubmissionPayloadResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          description: Validation failed. Nothing was persisted; `message` lists the individual validation failures.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  /partner/onboarding-submissions/reference-data/activity-codes:
+    get:
+      summary: Get Activity Codes Reference Data
+      description: 'Returns a list of industry activity codes filtered by code type and optional prefix.
+
+        Use this endpoint to retrieve valid values for the `code` field within
+
+        `businessClassification.activityCodePrimary` and
+
+        `businessClassification.activityCodesSecondary` in an onboarding submission
+
+        payload, together with the corresponding classification `scheme`.'
+      tags:
+      - Onboarding Submissions
+      operationId: get-onboarding-reference-data-activity-codes
+      parameters:
+      - name: industryCodeType
+        in: query
+        required: true
+        description: The classification system for activity codes; this maps to the `scheme` value used in the onboarding submission payload (for example `activityCodePrimary.scheme` and `activityCodesSecondary[].scheme`, such as `NACE`, `SIC`, or `NAICS`)
+        schema:
+          type: string
+          example: NACE
+      - name: codePrefix
+        in: query
+        required: false
+        description: Filter results to codes starting with this prefix (e.g. `08`)
+        schema:
+          type: string
+          example: 8
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  industries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Activity code identifier
+                          example: 8.1
+                        description:
+                          type: string
+                          description: Human-readable description of the activity
+                          example: Quarrying of stone, sand and clay
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /partner/onboarding-submissions/reference-data/industry:
+    get:
+      summary: Get Industry Reference Data
+      description: 'Returns a list of internal industry types and their subtypes.
+
+        Use this endpoint to retrieve valid values for the
+
+        `businessClassification.industryType` and
+
+        `businessClassification.industrySubtype` fields in an onboarding
+
+        submission payload.'
+      tags:
+      - Onboarding Submissions
+      operationId: get-onboarding-reference-data-industry
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  internalIndustryTypes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Display name of the industry type
+                        position:
+                          type: integer
+                          description: Sort order position
+                        internalIndustrySubtypes:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Display name of the industry subtype
+                              code:
+                                type: string
+                                description: Machine-readable code for the subtype
+                              position:
+                                type: integer
+                                description: Sort order position
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /partner/onboarding-submissions/subscription:
+    post:
+      summary: 'Callback: Add/Update'
+      description: 'Subscribe to callbacks for onboarding submission events. Callbacks will be sent to the provided callbackUrl when the specified events occur.
+
+
+        **Event Triggers:**
+
+        - `SUBMISSION_SUBMITTED`: Triggered when an onboarding submission is successfully submitted (status: SUBMITTED, detailedStatus: IN_APPROVAL_PLIANT), and again when the case is routed to the banking partner (status: SUBMITTED, detailedStatus: IN_APPROVAL_BANKINGPARTNER)
+
+        - `SUBMISSION_APPROVED`: Triggered when the bank submission is approved (status: APPROVED)
+
+        - `SUBMISSION_ACCEPTED`: Currently not sent
+
+        - `SUBMISSION_REJECTED`: Triggered when the submission is rejected (status: REJECTED)
+
+        - `SUBMISSION_NEEDS_MORE_INFO`: Currently not sent
+
+        - `SUBMISSION_WITHDRAWN`: Triggered when an onboarding submission is terminated (status: WITHDRAWN)
+
+
+        For information about callback structure, headers, authentication, and verification, see the Callbacks documentation.'
+      tags:
+      - Onboarding Submissions
+      operationId: create-onboarding-submission-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - callbackUrl
+              - eventTypes
+              properties:
+                callbackUrl:
+                  type: string
+                  format: uri
+                  example: https://myserver.com/send/callback/here
+                  description: The URL to send the callback to. Must be a valid and reachable URL. Only HTTPS URLs are supported.
+                eventTypes:
+                  type: array
+                  description: The event types to subscribe to.
+                  minItems: 1
+                  items:
+                    type: string
+                    enum:
+                    - SUBMISSION_SUBMITTED
+                    - SUBMISSION_APPROVED
+                    - SUBMISSION_ACCEPTED
+                    - SUBMISSION_REJECTED
+                    - SUBMISSION_NEEDS_MORE_INFO
+                    - SUBMISSION_WITHDRAWN
+      responses:
+        '201':
+          description: Subscription created or updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+      callbacks:
+        submissionSubmitted:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: 'Callback for SUBMISSION_SUBMITTED event. Triggered when an onboarding submission is successfully
+
+                submitted (detailedStatus: IN_APPROVAL_PLIANT), and again when the case is routed to the banking
+
+                partner (detailedStatus: IN_APPROVAL_BANKINGPARTNER). Main status remains SUBMITTED for both.
+
+                '
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: Referencing the organization this callback was sent for. See [guides](/docs/callbacks) for more details.
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: Referencing the payment program this callback was sent for. See [guides](/docs/callbacks) for more details.
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner. See [guides](/docs/callbacks) for more details.
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: A unique identifier for this callback. Can be used to deduplicate callbacks. See [guides](/docs/callbacks) for more details.
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: The date and time when the callback was created. See [guides](/docs/callbacks) for more details.
+              requestBody:
+                $ref: '#/components/requestBodies/OnboardingSubmissionSubmittedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        submissionApproved:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback for SUBMISSION_APPROVED event. Triggered when the bank submission is approved.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: Referencing the organization this callback was sent for.
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: Referencing the payment program this callback was sent for.
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner.
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: A unique identifier for this callback.
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: The date and time when the callback was created.
+              requestBody:
+                $ref: '#/components/requestBodies/OnboardingSubmissionApprovedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        submissionRejected:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback for SUBMISSION_REJECTED event. Triggered when the submission is rejected.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: Referencing the organization this callback was sent for.
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: Referencing the payment program this callback was sent for.
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner.
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: A unique identifier for this callback.
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: The date and time when the callback was created.
+              requestBody:
+                $ref: '#/components/requestBodies/OnboardingSubmissionRejectedCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+        submissionWithdrawn:
+          '{$request.body#/callbackUrl}':
+            post:
+              description: Callback for SUBMISSION_WITHDRAWN event. Triggered when an onboarding submission is terminated.
+              parameters:
+              - in: header
+                name: X-Organization-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: Referencing the organization this callback was sent for.
+              - in: header
+                name: X-Payment-Program-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: Referencing the payment program this callback was sent for.
+              - in: header
+                name: X-Partner-Organization-Id
+                schema:
+                  type: string
+                  description: Filled, if the value `partnerOrganizationId` is [set](/reference/update-organization) by the partner on the organization itself. Referencing the organization identifier of the partner.
+              - in: header
+                name: X-Callback-Id
+                schema:
+                  type: string
+                  format: uuid
+                  description: A unique identifier for this callback.
+              - in: header
+                name: X-Callback-Created-At
+                schema:
+                  type: string
+                  format: date-time
+                  description: The date and time when the callback was created.
+              requestBody:
+                $ref: '#/components/requestBodies/OnboardingSubmissionWithdrawnCallback'
+              responses:
+                '200':
+                  description: We expect the partner to return a HTTP 200 status code if the callback was successfully received. On 4xx and 5xx status codes, we will [retry](/docs/callbacks#retries) the callback.
+    delete:
+      summary: 'Callback: Remove'
+      description: Remove the callback subscription for onboarding submission events.
+      tags:
+      - Onboarding Submissions
+      operationId: remove-onboarding-submission-subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - eventTypes
+              properties:
+                eventTypes:
+                  type: array
+                  description: The event types to unsubscribe from.
+                  items:
+                    type: string
+                    enum:
+                    - SUBMISSION_SUBMITTED
+                    - SUBMISSION_APPROVED
+                    - SUBMISSION_ACCEPTED
+                    - SUBMISSION_REJECTED
+                    - SUBMISSION_NEEDS_MORE_INFO
+                    - SUBMISSION_WITHDRAWN
+      responses:
+        '200':
+          description: Subscription removed successfully
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+  /partner/onboarding-submissions/{submissionId}:
+    get:
+      summary: Get Submission Overview
+      description: Returns the current submission status and identifiers (without payload).
+      tags:
+      - Onboarding Submissions
+      operationId: get-onboarding-submission
+      parameters:
+      - name: submissionId
+        in: path
+        required: true
+        description: Onboarding submission identifier (UUID).
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Current submission detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingSubmissionStatusResponse'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    delete:
+      summary: Terminate (Cancel) Onboarding Submission
+      description: Cancels the submission (status becomes WITHDRAWN). Not allowed for terminal states (returns 409).
+      tags:
+      - Onboarding Submissions
+      operationId: cancel-onboarding-submission
+      parameters:
+      - name: submissionId
+        in: path
+        required: true
+        description: Onboarding submission identifier (UUID).
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Submission cancelled
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /partner/onboarding-submissions/{submissionId}/latest:
+    get:
+      summary: Get Stored Onboarding Submission Details
+      description: Returns the current onboarding submission details including the full payload. Use this to retrieve the full form state.
+      tags:
+      - Onboarding Submissions
+      operationId: get-onboarding-submission-document
+      parameters:
+      - name: submissionId
+        in: path
+        required: true
+        description: Onboarding submission identifier (UUID).
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Successfully retrieved onboarding submission details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingSubmissionPayloadResponse'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /partner/onboarding-submissions/{submissionId}/submit:
+    post:
+      summary: Submit for Final Decision
+      description: 'Submits the onboarding submission for final decision. Returns 200 OK if the submission passes validation and is accepted for processing.
+
+        Returns 422 if validation fails (required fields missing). Returns 409 if the submission is not in an editable state.'
+      tags:
+      - Onboarding Submissions
+      operationId: submit-onboarding-submission
+      parameters:
+      - name: submissionId
+        in: path
+        required: true
+        description: Onboarding submission identifier (UUID).
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Submission accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingSubmissionSubmitAccepted'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /partner/onboarding-submissions/{submissionId}/validation:
+    get:
+      summary: Validate Completeness of Required Fields
+      description: 'Validates whether the onboarding submission has all required fields populated.
+
+        If any mandatory field is missing, the response will indicate "complete: false" and list the missing paths in "requiredPaths".'
+      tags:
+      - Onboarding Submissions
+      operationId: validate-onboarding-submission
+      parameters:
+      - name: submissionId
+        in: path
+        required: true
+        description: Onboarding submission identifier (UUID).
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingSubmissionValidationResponse'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  requestBodies:
+    OnboardingSubmissionApprovedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OnboardingSubmissionCallbackPayload'
+    OnboardingSubmissionSubmittedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OnboardingSubmissionCallbackPayload'
+    OnboardingSubmissionRejectedCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OnboardingSubmissionCallbackPayload'
+    OnboardingSubmissionWithdrawnCallback:
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Event'
+            - $ref: '#/components/schemas/OnboardingSubmissionCallbackPayload'
+  schemas:
+    OnboardingSubmissionCreateAndSubmitRequest:
+      type: object
+      required:
+      - organizationId
+      - submission
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+          description: The organization the submission belongs to. It must still be in onboarding.
+        submission:
+          description: The onboarding submission payload to validate, persist and submit.
+          allOf:
+          - $ref: '#/components/schemas/OnboardingSubmissionCreateAndSubmitPayload'
+    OnboardingSubmissionDecisionResult:
+      type: object
+      properties:
+        decidedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the risk/compliance decision was received.
+        rulesFailed:
+          type: array
+          items:
+            type: object
+            required:
+            - code
+            - message
+            - fieldPath
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+              fieldPath:
+                type: string
+          description: List of rules that failed during the decision process.
+    OnboardingSubmissionPayload:
+      type: object
+      description: Full replacement payload. On each PUT the entire payload replaces the previously stored data. Unknown keys are rejected. Arrays are replaced in full (not merged). Do not send null values.
+      properties:
+        entity:
+          type: object
+          properties:
+            legalEntityName:
+              type: string
+              description: Full registered legal name.
+            tradeNames:
+              type: array
+              items:
+                type: string
+            legalForm:
+              type: string
+              description: ISO 20275 Entity Legal Form (ELF) code. Value must match an ELF code from the official list.
+            businessDescription:
+              type: string
+              description: Description of business scope including product, services and customer's profile.
+            ein:
+              type: string
+              description: Employer Identification Number (EIN) — a 9-digit US federal tax ID issued by the IRS, formatted as XX-XXXXXXX.
+              minLength: 10
+              maxLength: 10
+              pattern: ^\d{2}-\d{7}$
+            commercialRegisterNumber:
+              type: string
+            commercialRegisterPulledAt:
+              type: string
+              format: date
+            registrationCourt:
+              type: string
+            registry:
+              type: object
+              description: External registry identifier and firmographics pull info.
+              properties:
+                value:
+                  type: string
+                  description: Registry/identifier value (country-specific).
+                source:
+                  type: string
+                  enum:
+                  - CREFO
+                  - DUNS_BRADSTREET
+                  - OTHER
+                firmographicsPulledAt:
+                  type: string
+                  format: date
+                  description: Date when registry firmographics were retrieved.
+            dateOfIncorporation:
+              type: string
+              format: date
+            foundingDate:
+              type: string
+              format: date
+              description: Alias for dateOfIncorporation.
+            countryOfIncorporation:
+              type: string
+              minLength: 2
+              maxLength: 2
+              pattern: ^[A-Z]{2}$
+            companyType:
+              type: string
+              enum:
+              - ACTIVE_NON_FINANCIAL
+              - NON_FINANCIAL
+              - FINANCIAL
+              description: Company type as required by onboarding.
+              deprecated: true
+            website:
+              type: string
+              format: uri
+            addresses:
+              type: object
+              properties:
+                registeredOffice:
+                  $ref: '#/components/schemas/OnboardingSubmissionPayload/properties/entity/properties/addresses/properties/billing'
+                principalBusiness:
+                  $ref: '#/components/schemas/OnboardingSubmissionPayload/properties/entity/properties/addresses/properties/billing'
+                billing:
+                  type: object
+                  properties:
+                    street:
+                      type: string
+                      maxLength: 128
+                      description: Street name (without number).
+                    streetNumber:
+                      type: string
+                      maxLength: 128
+                      description: House/building number.
+                    streetAdditionalInformation:
+                      type: string
+                      maxLength: 256
+                    city:
+                      type: string
+                      maxLength: 64
+                    postalCode:
+                      type: string
+                      maxLength: 16
+                    country:
+                      type: string
+                      minLength: 2
+                      maxLength: 2
+                      description: ISO-3166-1 alpha-2 country code (e.g., DE, AT).
+                      pattern: ^[A-Z]{2}$
+                    additionalInformation:
+                      type: string
+                      maxLength: 256
+                    state:
+                      type: string
+                      description: The US state. Only applicable when country is US.
+                      enum:
+                      - AL
+                      - AK
+                      - AZ
+                      - AR
+                      - CA
+                      - CO
+                      - CT
+                      - DE
+                      - FL
+                      - GA
+                      - HI
+                      - ID
+                      - IL
+                      - IN
+                      - IA
+                      - KS
+                      - KY
+                      - LA
+                      - ME
+                      - MD
+                      - MA
+                      - MI
+                      - MN
+                      - MS
+                      - MO
+                      - MT
+                      - NE
+                      - NV
+                      - NH
+                      - NJ
+                      - NM
+                      - NY
+                      - NC
+                      - ND
+                      - OH
+                      - OK
+                      - OR
+                      - PA
+                      - RI
+                      - SC
+                      - SD
+                      - TN
+                      - TX
+                      - UT
+                      - VT
+                      - VA
+                      - WA
+                      - WV
+                      - WI
+                      - WY
+                cardDelivery:
+                  $ref: '#/components/schemas/OnboardingSubmissionPayload/properties/entity/properties/addresses/properties/billing'
+            taxProfile:
+              type: object
+              properties:
+                vatRegistrationNumber:
+                  type: string
+                nationalTaxId:
+                  type: string
+                crsClassification:
+                  type: string
+                  enum:
+                  - ACTIVE_NFFE
+                  - PASSIVE_NFFE
+                  - FINANCIAL_INSTITUTION
+                  - NON_REPORTING_FI
+                usTaxStatus:
+                  type: object
+                  properties:
+                    applicable:
+                      type: boolean
+                      description: True if entity has US nexus/obligations.
+                    classification:
+                      type: string
+                      enum:
+                      - NONE
+                      - US_NEXUS
+                      - US_OWNERSHIP
+                      - US_BUSINESS_ACTIVITIES
+                      - US_PERSON
+                    fatcaGiinNumber:
+                      type: string
+                      description: Global Intermediary Identification Number (if registered under FATCA).
+            businessClassification:
+              type: object
+              properties:
+                activityCodePrimary:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      description: e.g., NACE code, SIC, NAICS
+                    scheme:
+                      type: string
+                      description: NACE | SIC | NAICS
+                activityCodesSecondary:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      scheme:
+                        type: string
+                regulatoryLicenses:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      licenseNumber:
+                        type: string
+                      issuingAuthority:
+                        type: string
+                      validFrom:
+                        type: string
+                        format: date
+                      validTo:
+                        type: string
+                        format: date
+                      scope:
+                        type: string
+                publicListing:
+                  type: object
+                  properties:
+                    isListed:
+                      type: boolean
+                    exchangeName:
+                      type: string
+                    ticker:
+                      type: string
+                    listingDate:
+                      type: string
+                      format: date
+                industryType:
+                  type: string
+                  description: Industry type classification. Retrieve available values from the industry endpoint.
+                industrySubtype:
+                  type: string
+                  description: Industry subtype classification. Retrieve available values from the industry endpoint.
+            financialProfile:
+              type: object
+              properties:
+                annualRevenue:
+                  type: object
+                  properties:
+                    amount:
+                      type: number
+                      format: double
+                    currency:
+                      type: string
+                      minLength: 3
+                      maxLength: 3
+                      pattern: ^[A-Z]{3}$
+                annualRevenueSource:
+                  type: string
+                  description: Source of the annual revenue.
+                balanceSheetTotal:
+                  type: object
+                  properties:
+                    amount:
+                      type: number
+                      format: double
+                    currency:
+                      type: string
+                      minLength: 3
+                      maxLength: 3
+                      pattern: ^[A-Z]{3}$
+                balanceSheetTotalSource:
+                  type: string
+                  description: Source of the total assets or total liabilities.
+                numberOfEmployees:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                numberOfEmployeesSource:
+                  type: string
+                  description: Source of the number of employees.
+                expectedAccountTurnoverRange:
+                  type: object
+                  properties:
+                    min:
+                      type: object
+                      properties:
+                        amount:
+                          type: number
+                          format: double
+                        currency:
+                          type: string
+                          minLength: 3
+                          maxLength: 3
+                          pattern: ^[A-Z]{3}$
+                    max:
+                      type: object
+                      properties:
+                        amount:
+                          type: number
+                          format: double
+                        currency:
+                          type: string
+                          minLength: 3
+                          maxLength: 3
+                          pattern: ^[A-Z]{3}$
+            ownershipStructure:
+              type: object
+              properties:
+                ownershipLayersCount:
+                  type: string
+                  enum:
+                  - L1_3
+                  - L4_5
+                  - ABOVE_5
+                  description: Number of ownership layers between entity and UBOs.
+                corporateShareholdersOverThreshold:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      legalName:
+                        type: string
+                      legalForm:
+                        type: string
+                        description: ISO 20275 Entity Legal Form (ELF) code.
+                      ownershipPercentage:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                        description: Whole-percent share of ownership. Fractional values are rejected.
+                      documents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            documentId:
+                              type: string
+                ubos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      person:
+                        $ref: '#/components/schemas/OnboardingSubmissionPayload/properties/authorizedSignatories/items/properties/person'
+                      ownershipPercentage:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                        description: Whole-percent share of ownership. Fractional values are rejected.
+                      controlMechanism:
+                        type: string
+                        enum:
+                        - SHAREHOLDING
+                        - VOTING_AGREEMENTS
+                        - BOARD_CONTROL
+                        - CONTRACTUAL_ARRANGEMENTS
+                        - TRUST_STRUCTURES
+                      isSeniorManagingOfficial:
+                        type: boolean
+                        description: Set when no natural person meets threshold.
+                      role:
+                        type: string
+                        enum:
+                        - UBO
+                        - SENIOR_MANAGING_OFFICIAL
+                        - BOARD_MEMBER
+            screening:
+              type: object
+              properties:
+                entitySanctionsCheck:
+                  type: object
+                  properties:
+                    matched:
+                      type: boolean
+                      description: True if there was a match found on the sanction list.
+                    listsMatched:
+                      type: array
+                      items:
+                        type: string
+                    lastScreenedAt:
+                      type: string
+                      format: date-time
+                    result:
+                      type: string
+                      enum:
+                      - CLEAR
+                      - FALSE_POSITIVE
+                      - MATCH_REVIEW
+                      - MATCH_CONFIRMED
+                    notes:
+                      type: string
+                entityAdverseMediaCheck:
+                  type: boolean
+                  description: True if adverse media found on entity.
+                entityAmlCheck:
+                  type: object
+                  properties:
+                    matched:
+                      type: boolean
+                    listsMatched:
+                      type: array
+                      items:
+                        type: string
+                    lastScreenedAt:
+                      type: string
+                      format: date-time
+                    result:
+                      type: string
+                      enum:
+                      - LOW
+                      - MEDIUM
+                      - HIGH
+                    notes:
+                      type: string
+                entityPepCheck:
+                  type: boolean
+                  description: True if PEP check has been performed on the entity.
+            sourceOfFunds:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum:
+                    - SHAREHOLDER_CAPITAL
+                    - BUSINESS_REVENUE
+                    - LOANS
+                    - INVESTMENTS
+                    - ASSET_SALES
+                    - GRANTS_SUBSIDIES
+                    - OTHER
+                  description:
+                    type: string
+                  amount:
+                    type: object
+                    properties:
+                      amount:
+                        type: number
+                        format: double
+                      currency:
+                        type: string
+                        minLength: 3
+                        maxLength: 3
+                        pattern: ^[A-Z]{3}$
+            documents:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum:
+                    - PASSPORT
+                    - ID_CARD
+                    - RESIDENCE_CARD
+                    - UTILITY_BILL
+                    - TAX_RETURN
+                    - BANK_STATEMENT
+                    - REGISTRATION_OF_RESIDENCY
+                    - OFFICIAL_CORRESPONDENCE
+                    - ARTICLES_OF_ASSOCIATION
+                    - REGISTRATION_EXCERPT
+                  documentId:
+                    type: string
+            productRisk:
+              type: object
+              properties:
+                intendedCardUsage:
+                  type: string
+                  description: Free-text description of intended usage.
+                geographicScopeCountriesOfOperations:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 2
+                    maxLength: 2
+                    pattern: ^[A-Z]{2}$
+        productPlan:
+          type: object
+          properties:
+            paymentProgram:
+              type: string
+              format: uuid
+            mainAccountCurrency:
+              type: string
+              minLength: 3
+              maxLength: 3
+              pattern: ^[A-Z]{3}$
+            plannedNumberOfCards:
+              type: integer
+              format: int32
+              minimum: 0
+            expectedMonthlySpend:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: double
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+                  pattern: ^[A-Z]{3}$
+            requestedAccountType:
+              type: string
+              enum:
+              - CREDIT
+              - PREFUND
+            requestedCreditLimit:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: double
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+                  pattern: ^[A-Z]{3}$
+            requestedPaymentTerms:
+              type: string
+              enum:
+              - MONTHLY
+              - BI_WEEKLY
+              - WEEKLY
+              - DAILY
+            requestedPaymentFrequency:
+              type: string
+              enum:
+              - DAILY
+              - WEEKLY
+              - BI_WEEKLY
+              - MONTHLY
+        legalConsents:
+          type: array
+          items:
+            type: object
+            properties:
+              documentKey:
+                type: string
+                description: Key identifying the legal document being accepted (e.g. "terms-and-conditions", "privacy-policy").
+              version:
+                type: string
+              acceptedAt:
+                type: string
+                format: date-time
+              acceptedByName:
+                type: string
+              acceptedByEmail:
+                type: string
+                format: email
+              acceptedById:
+                type: string
+                description: Cardholder identifier of the person who accepted (cardholderId).
+                deprecated: true
+        authorizedSignatories:
+          type: array
+          items:
+            type: object
+            properties:
+              person:
+                type: object
+                properties:
+                  names:
+                    type: object
+                    properties:
+                      salutation:
+                        type: string
+                        enum:
+                        - Mr.
+                        - Ms.
+                      firstName:
+                        type: string
+                      middleNames:
+                        type: string
+                      surname:
+                        type: string
+                      maidenName:
+                        type: string
+                      aliases:
+                        type: array
+                        items:
+                          type: string
+                      firstNameCard:
+                        type: string
+                        maxLength: 24
+                        description: Optional shorter first name to emboss on the card, for a legal representative whose legal first name does not fit. Honoured only when both firstNameCard and surnameCard are supplied; otherwise firstName and surname are embossed. Combined with surnameCard it must not exceed 24 characters. The legal name is unaffected. Ignored for ultimate beneficial owners.
+                      surnameCard:
+                        type: string
+                        maxLength: 24
+                        description: Optional shorter surname to emboss on the card, for a legal representative whose legal surname does not fit. Honoured only when both firstNameCard and surnameCard are supplied; otherwise firstName and surname are embossed. Combined with firstNameCard it must not exceed 24 characters. The legal name is unaffected. Ignored for ultimate beneficial owners.
+                  dateOfBirth:
+                    type: string
+                    format: date
+                    description: Must be a date in the past.
+                  placeOfBirth:
+                    type: string
+                  countryOfBirth:
+                    type: string
+                    minLength: 2
+                    maxLength: 2
+                    pattern: ^[A-Z]{2}$
+                  nationalities:
+                    type: array
+                    deprecated: true
+                    items:
+                      type: string
+                      minLength: 2
+                      maxLength: 2
+                      pattern: ^[A-Z]{2}$
+                  citizenshipCountries:
+                    type: array
+                    items:
+                      type: string
+                      minLength: 2
+                      maxLength: 2
+                      pattern: ^[A-Z]{2}$
+                    description: Countries of citizenship (alias of nationalities).
+                  residentialAddress:
+                    $ref: '#/components/schemas/OnboardingSubmissionPayload/properties/entity/properties/addresses/properties/billing'
+                  contact:
+                    type: object
+                    properties:
+                      mobilePhone:
+                        type: string
+                        description: Primary mobile phone number in E.164 format if possible.
+                      email:
+                        type: string
+                        format: email
+                        description: Primary email address.
+                      phoneNumbers:
+                        type: array
+                        items:
+                          type: string
+                        description: Additional phone numbers.
+                      emails:
+                        type: array
+                        items:
+                          type: string
+                          format: email
+                        description: Additional email addresses.
+                  identificationDocuments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                          - PASSPORT
+                          - ID_CARD
+                          - RESIDENCE_CARD
+                        number:
+                          type: string
+                          description: Document number (ID number).
+                        issuingCountry:
+                          type: string
+                          minLength: 2
+                          maxLength: 2
+                          pattern: ^[A-Z]{2}$
+                        issuingAuthority:
+                          type: string
+                        issuingOffice:
+                          type: string
+                          description: Issuing office/branch, if different from authority.
+                        issueDate:
+                          type: string
+                          format: date
+                        expiryDate:
+                          type: string
+                          format: date
+                        fileRef:
+                          description: Reference to an uploaded file for this document, if available.
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - PASSPORT
+                              - ID_CARD
+                              - RESIDENCE_CARD
+                              - UTILITY_BILL
+                              - TAX_RETURN
+                              - BANK_STATEMENT
+                              - REGISTRATION_OF_RESIDENCY
+                              - OFFICIAL_CORRESPONDENCE
+                              - ARTICLES_OF_ASSOCIATION
+                              - REGISTRATION_EXCERPT
+                            documentId:
+                              type: string
+                  dateOfIdentification:
+                    type: string
+                    format: date
+                  identificationProvided:
+                    type: boolean
+                    description: True if KYC identification has been provided/completed.
+                  identificationProvider:
+                    type: string
+                    enum:
+                    - IDNOW
+                    - LAWYER_NOTARY
+                    - WEBID
+                    - POSTIDENT
+                    - POSTIDENT_ONLINE
+                    - VERIFF
+                    - OTHER
+                  taxResidences:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        taxResidence:
+                          type: string
+                          description: ISO 3166-1 alpha-2 country code (e.g., DE, AT)
+                          pattern: ^[A-Z]{2}$
+                        taxIdentificationNumber:
+                          type: string
+                        primaryResidence:
+                          type: boolean
+                  usTaxStatus:
+                    type: object
+                    deprecated: true
+                    properties:
+                      isUsPerson:
+                        type: boolean
+                        deprecated: true
+                      ssnItin:
+                        type: string
+                        description: SSN/ITIN if US person.
+                        deprecated: true
+                  ssn:
+                    type: string
+                    description: Social Security Number (SSN); applicable to US persons. Formatted as XXX-XX-XXXX.
+                    minLength: 11
+                    maxLength: 11
+                    pattern: ^\d{3}-\d{2}-\d{4}$
+                  fatca:
+                    type: boolean
+                    description: Convenience boolean; true if FATCA applies to the person.
+                  pepStatus:
+                    type: string
+                    enum:
+                    - NOT_PEP
+                    - PEP_CURRENT
+                    - PEP_FORMER
+                  sanctionsScreening:
+                    type: object
+                    properties:
+                      matched:
+                        type: boolean
+                        description: True if there was a match found on the sanction list.
+                      listsMatched:
+                        type: array
+                        items:
+                          type: string
+                      lastScreenedAt:
+                        type: string
+                        format: date-time
+                      result:
+                        type: string
+                        enum:
+                        - CLEAR
+                        - FALSE_POSITIVE
+                        - MATCH_REVIEW
+                        - MATCH_CONFIRMED
+                        description: Result of the sanction screening process.
+                      notes:
+                        type: string
+                  adverseMedia:
+                    type: object
+                    properties:
+                      hasAdverseMedia:
+                        type: boolean
+                      categories:
+                        type: array
+                        items:
+                          type: string
+                          enum:
+                          - FINANCIAL_CRIME
+                          - REGULATORY_VIOLATION
+                          - SANCTIONS
+                          - CORRUPTION
+                          - TERRORISM
+                          - REPUTATION
+                      lastScreenedAt:
+                        type: string
+                        format: date-time
+                  amlCheck:
+                    type: object
+                    properties:
+                      matched:
+                        type: boolean
+                      listsMatched:
+                        type: array
+                        items:
+                          type: string
+                      lastScreenedAt:
+                        type: string
+                        format: date-time
+                      result:
+                        type: string
+                        enum:
+                        - LOW
+                        - MEDIUM
+                        - HIGH
+                        description: Result of the AML screening.
+                      notes:
+                        type: string
+                  documents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                          - PASSPORT
+                          - ID_CARD
+                          - RESIDENCE_CARD
+                          - UTILITY_BILL
+                          - TAX_RETURN
+                          - BANK_STATEMENT
+                          - REGISTRATION_OF_RESIDENCY
+                          - OFFICIAL_CORRESPONDENCE
+                          - ARTICLES_OF_ASSOCIATION
+                          - REGISTRATION_EXCERPT
+                        documentId:
+                          type: string
+              signingAuthority:
+                type: string
+                enum:
+                - SOLE
+                - JOINT
+              uboRelation:
+                type: string
+                enum:
+                - YES_SHAREHOLDING
+                - YES_OTHER_CONTROL
+                - YES_FICTIVE
+                - 'NO'
+                description: Indicates whether the authorized signatory is also a UBO and by which mechanism.
+              platformInvitation:
+                type: object
+                deprecated: true
+                properties:
+                  invite:
+                    type: boolean
+                    description: If true, the person will be invited to the platform.
+                    deprecated: true
+                  type:
+                    type: string
+                    enum:
+                    - EMBEDDED
+                    - NON_EMBEDDED
+                    description: 'INVITE type. Only applicable if invite=true. EMBEDDED: embedded experience, no standalone UI access. NON_EMBEDDED: standalone access to Pliant UI.'
+                    deprecated: true
+              verificationStatus:
+                type: string
+                enum:
+                - NOT_REQUESTED
+                - COMPLETED
+    Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: The error code
+        exceptionId:
+          type: string
+          format: uuid
+          description: The id of the exception that was thrown
+        message:
+          type: string
+          description: The cause of the error or further explanations on the error
+    OnboardingSubmissionStatusResponse:
+      type: object
+      required:
+      - submissionId
+      - status
+      - organizationId
+      description: Slim response for status and identifiers. No payload.
+      properties:
+        submissionId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - IN_PROGRESS
+          - SUBMITTED
+          - APPROVED
+          - REJECTED
+          - NEEDS_MORE_INFO
+          - WITHDRAWN
+          description: 'Submission lifecycle state. IN_PROGRESS: editable. SUBMITTED: submitted and awaiting decision. APPROVED/REJECTED/WITHDRAWN: terminal. NEEDS_MORE_INFO: additional information requested.'
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+        decisionResult:
+          $ref: '#/components/schemas/OnboardingSubmissionDecisionResult'
+    OnboardingSubmissionValidationResponse:
+      type: object
+      required:
+      - complete
+      properties:
+        complete:
+          type: boolean
+        warnings:
+          type: array
+          items:
+            type: string
+        rulesFailed:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+        requiredPaths:
+          type: array
+          items:
+            type: string
+          description: Server-declared list of field paths that are currently mandatory for submission.
+    OnboardingSubmissionSubmitAccepted:
+      type: object
+      properties:
+        message:
+          type: string
+          description: A confirmation message indicating that the submission was accepted for processing.
+        submissionId:
+          type: string
+          format: uuid
+          description: Unique identifier of the submitted onboarding task.
+    OnboardingSubmissionCallbackPayload:
+      type: object
+      required:
+      - eventType
+      - onboardingSubmissionId
+      - organizationId
+      - status
+      properties:
+        eventType:
+          type: string
+          enum:
+          - SUBMISSION_SUBMITTED
+          - SUBMISSION_APPROVED
+          - SUBMISSION_ACCEPTED
+          - SUBMISSION_REJECTED
+          - SUBMISSION_NEEDS_MORE_INFO
+          - SUBMISSION_WITHDRAWN
+          description: Event types for onboarding submission callbacks.
+        onboardingSubmissionId:
+          type: string
+          format: uuid
+          description: Unique identifier of the onboarding submission.
+        organizationId:
+          type: string
+          format: uuid
+          description: Unique identifier of the organization.
+        status:
+          type: string
+          enum:
+          - IN_PROGRESS
+          - SUBMITTED
+          - APPROVED
+          - REJECTED
+          - NEEDS_MORE_INFO
+          - WITHDRAWN
+          description: Current main status of the onboarding submission.
+        detailedStatus:
+          type:
+          - string
+          - 'null'
+          enum:
+          - IN_APPROVAL_PLIANT
+          - IN_APPROVAL_BANKINGPARTNER
+          description: 'Supplementary detail on the SUBMITTED status. `IN_APPROVAL_PLIANT` while under Pliant compliance
+
+            review, `IN_APPROVAL_BANKINGPARTNER` once routed to the banking partner. Null for all other statuses.
+
+            '
+        decisionResult:
+          type:
+          - object
+          - 'null'
+          description: Decision metadata. Present for APPROVED and REJECTED events.
+          properties:
+            decidedAt:
+              type: string
+              format: date-time
+              description: Timestamp when the decision was made.
+    OnboardingSubmissionCreateAndSubmitEntity:
+      allOf:
+      - $ref: '#/components/schemas/OnboardingSubmissionPayload/properties/entity'
+      - type: object
+        properties:
+          businessDescription:
+            type: string
+            minLength: 30
+            maxLength: 500
+            description: Description of business scope including product, services and customer's profile. Must be between 30 and 500 characters.
+    OnboardingSubmissionCreateAndSubmitPayload:
+      allOf:
+      - type: object
+        description: 'The complete onboarding submission. Send the full payload in a single request.
+
+
+          Only three fields are mandatory. At least one authorized signatory whose `signingAuthority`
+
+          is `SOLE` or `JOINT` must provide `person.names.firstName`, `person.names.surname` and
+
+          `person.contact.email`. Every other field is optional, but any field that *is* provided is
+
+          validated — see the operation description for the full rule list.
+
+
+          The selected name fields must total at most 24 characters, excluding the space between them. If the legal name fields
+
+          exceed that limit, a shorter pair can be provided via `person.names.firstNameCard` and `person.names.surnameCard`.
+
+
+          Unknown keys are rejected. Do not send null values.
+
+          '
+        required:
+        - authorizedSignatories
+        properties:
+          entity:
+            $ref: '#/components/schemas/OnboardingSubmissionCreateAndSubmitEntity'
+          authorizedSignatories:
+            type: array
+            minItems: 1
+            items:
+              $ref: '#/components/schemas/OnboardingSubmissionPayload/properties/authorizedSignatories/items'
+      - $ref: '#/components/schemas/OnboardingSubmissionPayload'
+    OnboardingSubmissionCreateRequest:
+      type: object
+      required:
+      - organizationId
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type: string
+    OnboardingSubmissionPayloadResponse:
+      type: object
+      required:
+      - submissionId
+      - status
+      - organizationId
+      - payload
+      description: Response that wraps the stored submission payload together with identifiers.
+      properties:
+        submissionId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - IN_PROGRESS
+          - SUBMITTED
+          - APPROVED
+          - REJECTED
+          - NEEDS_MORE_INFO
+          - WITHDRAWN
+        organizationId:
+          type: string
+          format: uuid
+        partnerOrganizationId:
+          type:
+          - string
+          - 'null'
+        payload:
+          $ref: '#/components/schemas/OnboardingSubmissionPayload'
+    Event:
+      type: object
+      properties:
+        eventType:
+          type: string
+          description: The type of event.
+  responses:
+    '403':
+      description: Forbidden. The API consumer is not allowed to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '404':
+      description: Not Found. The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '409':
+      description: Conflict. The request could not be completed due to a conflict with the current state of the resource. You may retry the call.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '500':
+      description: Internal Server Error. The request was not completed due to an internal error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '422':
+      description: Unprocessable Content. The request could not be completed due to contents of the request. The syntax of the request content was correct.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '429':
+      description: Too Many Requests. The API consumer has sent too many requests in a given amount of time. Please check our [API guidelines](/docs/pliant-api-guidelines#api-rate-limits).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Detailed description of the error and breached rate limit.
+    '503':
+      description: Service Unavailable. A service the request depends on is temporarily not reachable, so the request was not completed. You may retry the call after the number of seconds given in the `Retry-After` header.
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          required: true
+          schema:
+            type: integer
+            example: 30
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '401':
+      description: Unauthorized. The API consumer is not authorized to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '400':
+      description: Bad Request. The API consumer sent a malformed request which could not be processed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: This API uses oAuth2 with client credentials flow to [obtain the Bearer Token](/docs/authenticated-api-usage).
+      bearerFormat: JWT
+x-provenance:
+  method: searched
+  source: https://partner.getpliant.com/reference
+  harvested: '2026-10-14'
+  tool: harvest-readme-openapi.py
+  note: Assembled verbatim from the OpenAPI definition ReadMe embeds in each operation page of the provider's developer portal; paths and components merged by API title, nothing authored.
+  assembled_from:
+  - https://partner.getpliant.com/reference/activate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/activate-physical-card.md
+  - https://partner.getpliant.com/reference/approve-card-limit-requests.md
+  - https://partner.getpliant.com/reference/approve-card-request.md
+  - https://partner.getpliant.com/reference/assign-project-team.md
+  - https://partner.getpliant.com/reference/assign-to-team.md
+  - https://partner.getpliant.com/reference/batch-update-cards-limits.md
+  - https://partner.getpliant.com/reference/bulk-upsert-subscriptions.md
+  - https://partner.getpliant.com/reference/cancel-onboarding-submission.md
+  - https://partner.getpliant.com/reference/card-pan-and-cvv-pci-vault.md
+  - https://partner.getpliant.com/reference/claim-card-as-copilot.md
+  - https://partner.getpliant.com/reference/create-access-link.md
+  - https://partner.getpliant.com/reference/create-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-and-submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/create-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/create-beneficiary.md
+  - https://partner.getpliant.com/reference/create-card-account-payout.md
+  - https://partner.getpliant.com/reference/create-card-account-subscription.md
+  - https://partner.getpliant.com/reference/create-card-account-transfer.md
+  - https://partner.getpliant.com/reference/create-card-account.md
+  - https://partner.getpliant.com/reference/create-card-control-subscription.md
+  - https://partner.getpliant.com/reference/create-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/create-card-limit-request-subscriptions.md
+  - https://partner.getpliant.com/reference/create-card-limit-requests.md
+  - https://partner.getpliant.com/reference/create-card-request-subscription.md
+  - https://partner.getpliant.com/reference/create-card-request.md
+  - https://partner.getpliant.com/reference/create-card-subscription.md
+  - https://partner.getpliant.com/reference/create-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/create-cashback-subscription.md
+  - https://partner.getpliant.com/reference/create-custom-field-option.md
+  - https://partner.getpliant.com/reference/create-custom-field.md
+  - https://partner.getpliant.com/reference/create-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/create-external-transfer.md
+  - https://partner.getpliant.com/reference/create-lead.md
+  - https://partner.getpliant.com/reference/create-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-organization-subscription.md
+  - https://partner.getpliant.com/reference/create-organization.md
+  - https://partner.getpliant.com/reference/create-payment-subscription.md
+  - https://partner.getpliant.com/reference/create-project.md
+  - https://partner.getpliant.com/reference/create-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/create-receipt-subscription.md
+  - https://partner.getpliant.com/reference/create-statement-subscription.md
+  - https://partner.getpliant.com/reference/create-team.md
+  - https://partner.getpliant.com/reference/create-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-vop-verification.md
+  - https://partner.getpliant.com/reference/deactivate-card-account.md
+  - https://partner.getpliant.com/reference/deactivate-cardholder.md
+  - https://partner.getpliant.com/reference/deactivate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/deactivate-team.md
+  - https://partner.getpliant.com/reference/delete-card-limit-requests.md
+  - https://partner.getpliant.com/reference/delete-card-request.md
+  - https://partner.getpliant.com/reference/delete-custom-field-option.md
+  - https://partner.getpliant.com/reference/delete-custom-field.md
+  - https://partner.getpliant.com/reference/delete-project.md
+  - https://partner.getpliant.com/reference/delete-receipt.md
+  - https://partner.getpliant.com/reference/delete-subscription.md
+  - https://partner.getpliant.com/reference/delete-team.md
+  - https://partner.getpliant.com/reference/delete-transaction-comment.md
+  - https://partner.getpliant.com/reference/enable-pliant-app-access.md
+  - https://partner.getpliant.com/reference/enroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/generate-test-transactions-in-sandbox.md
+  - https://partner.getpliant.com/reference/get-account-entries.md
+  - https://partner.getpliant.com/reference/get-accounting-transactions-batch.md
+  - https://partner.getpliant.com/reference/get-available-cards.md
+  - https://partner.getpliant.com/reference/get-beneficiaries.md
+  - https://partner.getpliant.com/reference/get-beneficiary-details.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-details.md
+  - https://partner.getpliant.com/reference/get-callback-details.md
+  - https://partner.getpliant.com/reference/get-callback-log.md
+  - https://partner.getpliant.com/reference/get-callback-subscriptions.md
+  - https://partner.getpliant.com/reference/get-callback.md
+  - https://partner.getpliant.com/reference/get-card-account-details.md
+  - https://partner.getpliant.com/reference/get-card-accounts-available-currencies.md
+  - https://partner.getpliant.com/reference/get-card-accounts-summary.md
+  - https://partner.getpliant.com/reference/get-card-accounts.md
+  - https://partner.getpliant.com/reference/get-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-countries.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-currencies.md
+  - https://partner.getpliant.com/reference/get-card-limit-request-detail.md
+  - https://partner.getpliant.com/reference/get-card-pin.md
+  - https://partner.getpliant.com/reference/get-card-request-details.md
+  - https://partner.getpliant.com/reference/get-card-requests.md
+  - https://partner.getpliant.com/reference/get-cardholder-details.md
+  - https://partner.getpliant.com/reference/get-cards.md
+  - https://partner.getpliant.com/reference/get-cashback-amounts.md
+  - https://partner.getpliant.com/reference/get-cashback-configuration.md
+  - https://partner.getpliant.com/reference/get-cashback-history.md
+  - https://partner.getpliant.com/reference/get-cashback-receipt.md
+  - https://partner.getpliant.com/reference/get-cashback-transactions.md
+  - https://partner.getpliant.com/reference/get-custom-field-options.md
+  - https://partner.getpliant.com/reference/get-custom-fields.md
+  - https://partner.getpliant.com/reference/get-external-transfer-details.md
+  - https://partner.getpliant.com/reference/get-external-transfers.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization-details.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization.md
+  - https://partner.getpliant.com/reference/get-multiple-card-details.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-activity-codes.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-industry.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission-document.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission.md
+  - https://partner.getpliant.com/reference/get-organization-details.md
+  - https://partner.getpliant.com/reference/get-organization-external-bank-account.md
+  - https://partner.getpliant.com/reference/get-organization-risk-status.md
+  - https://partner.getpliant.com/reference/get-organizations-external-bank-accounts.md
+  - https://partner.getpliant.com/reference/get-otp-for-pci-widget.md
+  - https://partner.getpliant.com/reference/get-partner-signing-jwks.md
+  - https://partner.getpliant.com/reference/get-payment-program.md
+  - https://partner.getpliant.com/reference/get-payments-detail.md
+  - https://partner.getpliant.com/reference/get-payments.md
+  - https://partner.getpliant.com/reference/get-project.md
+  - https://partner.getpliant.com/reference/get-projects.md
+  - https://partner.getpliant.com/reference/get-receipt-automatcher-status.md
+  - https://partner.getpliant.com/reference/get-receipt-detail.md
+  - https://partner.getpliant.com/reference/get-receipts.md
+  - https://partner.getpliant.com/reference/get-single-card-details.md
+  - https://partner.getpliant.com/reference/get-statement-csv.md
+  - https://partner.getpliant.com/reference/get-statement-detail.md
+  - https://partner.getpliant.com/reference/get-statementpdf.md
+  - https://partner.getpliant.com/reference/get-statements.md
+  - https://partner.getpliant.com/reference/get-team.md
+  - https://partner.getpliant.com/reference/get-teams.md
+  - https://partner.getpliant.com/reference/get-transactions-detail-batch.md
+  - https://partner.getpliant.com/reference/get-transactions-detail.md
+  - https://partner.getpliant.com/reference/get-transactions.md
+  - https://partner.getpliant.com/reference/get-vop-verification.md
+  - https://partner.getpliant.com/reference/invite-cardholders.md
+  - https://partner.getpliant.com/reference/invite-owner.md
+  - https://partner.getpliant.com/reference/issue-card-instant-with-pci.md
+  - https://partner.getpliant.com/reference/issue-card-instant.md
+  - https://partner.getpliant.com/reference/issue-card.md
+  - https://partner.getpliant.com/reference/list-card-limit-requests.md
+  - https://partner.getpliant.com/reference/list-cardholders.md
+  - https://partner.getpliant.com/reference/list-identity-verifications.md
+  - https://partner.getpliant.com/reference/list-onboarding-submissions.md
+  - https://partner.getpliant.com/reference/list-organizations.md
+  - https://partner.getpliant.com/reference/load-cards-batch.md
+  - https://partner.getpliant.com/reference/lock-card.md
+  - https://partner.getpliant.com/reference/metadata-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/reassign-platform-fee-card.md
+  - https://partner.getpliant.com/reference/receipt-as-merged-pdf.md
+  - https://partner.getpliant.com/reference/receipt-as-pdf.md
+  - https://partner.getpliant.com/reference/receipt-original.md
+  - https://partner.getpliant.com/reference/receipt-thumbnail.md
+  - https://partner.getpliant.com/reference/redeem-cashback.md
+  - https://partner.getpliant.com/reference/register-cardholders.md
+  - https://partner.getpliant.com/reference/reject-card-limit-requests.md
+  - https://partner.getpliant.com/reference/reject-card-request.md
+  - https://partner.getpliant.com/reference/remove-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/remove-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-account-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-control-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-limit-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/remove-cards-subscription.md
+  - https://partner.getpliant.com/reference/remove-cashback-subscription.md
+  - https://partner.getpliant.com/reference/remove-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/remove-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/remove-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/remove-organization-subscription.md
+  - https://partner.getpliant.com/reference/remove-payment-subscription.md
+  - https://partner.getpliant.com/reference/remove-pliant-app-access.md
+  - https://partner.getpliant.com/reference/remove-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/remove-receipt-subscription.md
+  - https://partner.getpliant.com/reference/remove-statement-subscription.md
+  - https://partner.getpliant.com/reference/remove-transaction-subscription.md
+  - https://partner.getpliant.com/reference/replace-card.md
+  - https://partner.getpliant.com/reference/resend-callbacks.md
+  - https://partner.getpliant.com/reference/revoke-access-link.md
+  - https://partner.getpliant.com/reference/search-callbacks.md
+  - https://partner.getpliant.com/reference/simulate-prefund-payment.md
+  - https://partner.getpliant.com/reference/simulate-transaction-status-transition.md
+  - https://partner.getpliant.com/reference/start-identity-verification.md
+  - https://partner.getpliant.com/reference/stop-identity-verification.md
+  - https://partner.getpliant.com/reference/submit-external-transfer.md
+  - https://partner.getpliant.com/reference/submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/terminate-card.md
+  - https://partner.getpliant.com/reference/unassign-from-team.md
+  - https://partner.getpliant.com/reference/unassign-project-team.md
+  - https://partner.getpliant.com/reference/unenroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/unload-cards-batch.md
+  - https://partner.getpliant.com/reference/unlock-card.md
+  - https://partner.getpliant.com/reference/update-accounting-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-beneficiary-activation.md
+  - https://partner.getpliant.com/reference/update-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/update-beneficiary.md
+  - https://partner.getpliant.com/reference/update-card-account.md
+  - https://partner.getpliant.com/reference/update-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/update-card-copilots.md
+  - https://partner.getpliant.com/reference/update-card-label.md
+  - https://partner.getpliant.com/reference/update-card-limit.md
+  - https://partner.getpliant.com/reference/update-card-validity-period.md
+  - https://partner.getpliant.com/reference/update-card.md
+  - https://partner.getpliant.com/reference/update-cardholders.md
+  - https://partner.getpliant.com/reference/update-custom-field-option.md
+  - https://partner.getpliant.com/reference/update-custom-field.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-card.md
+  - https://partner.getpliant.com/reference/update-external-transfer-status.md
+  - https://partner.getpliant.com/reference/update-external-transfer.md
+  - https://partner.getpliant.com/reference/update-organization.md
+  - https://partner.getpliant.com/reference/update-partner-settings.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-project.md
+  - https://partner.getpliant.com/reference/update-team.md
+  - https://partner.getpliant.com/reference/update-transaction-category.md
+  - https://partner.getpliant.com/reference/update-transaction-comment.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-transaction-receipt-upload.md
+  - https://partner.getpliant.com/reference/upload-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/upload-receipt.md
+  - https://partner.getpliant.com/reference/validate-onboarding-submission.md
+  merge:
+    pages: 225
+    deduped: 1508
+    conflicts_kept_first: 0

@@ -1,0 +1,66 @@
+{
+  "provider": "hihealth",
+  "sources": [
+    "hihealth-pliant-customer-api-openapi.yml",
+    "hihealth-pliant-partner-api-openapi.yml"
+  ],
+  "outputs": [
+    "hihealth-account-entries-api-openapi.yml",
+    "hihealth-accounting-projects-api-openapi.yml",
+    "hihealth-accounting-teams-api-openapi.yml",
+    "hihealth-accounting-transactions-api-openapi.yml",
+    "hihealth-callbacks-api-openapi.yml",
+    "hihealth-card-accounts-api-openapi.yml",
+    "hihealth-card-controls-api-openapi.yml",
+    "hihealth-card-copilots-api-openapi.yml",
+    "hihealth-card-sensitive-data-api-openapi.yml",
+    "hihealth-cardholders-api-openapi.yml",
+    "hihealth-cards-api-openapi.yml",
+    "hihealth-custom-fields-api-openapi.yml",
+    "hihealth-organizations-api-openapi.yml",
+    "hihealth-payments-api-openapi.yml",
+    "hihealth-receipt-automatching-api-openapi.yml",
+    "hihealth-receipts-api-openapi.yml",
+    "hihealth-statements-api-openapi.yml",
+    "hihealth-test-data-generator-sandbox-only-api-openapi.yml",
+    "hihealth-transactions-api-openapi.yml",
+    "hihealth-access-links-api-openapi.yml",
+    "hihealth-beneficiaries-api-openapi.yml",
+    "hihealth-card-limit-requests-api-openapi.yml",
+    "hihealth-card-requests-api-openapi.yml",
+    "hihealth-cashback-api-openapi.yml",
+    "hihealth-external-transfers-api-openapi.yml",
+    "hihealth-identity-verification-api-openapi.yml",
+    "hihealth-misc-api-openapi.yml",
+    "hihealth-mobile-wallet-tokenization-api-openapi.yml",
+    "hihealth-onboarding-submissions-api-openapi.yml",
+    "hihealth-verification-of-payee-api-openapi.yml"
+  ],
+  "archived": [
+    "deleted 2 superseded output(s) from the previous generation"
+  ],
+  "errors": [
+    "hihealth-pliant-partner-api-openapi.yml: dangling $ref: #/paths/~1cards~1limits~1{cardId}/put/requestBody/content/application~1json/schema/allOf/1/properties/additionalLimits/items"
+  ],
+  "warnings": [
+    "hihealth-pliant-customer-api-openapi.yml: previously refined output kept for 131 operation(s) no archived document covers (e.g. /account-entries get, /account-entries/subscription delete, /account-entries/subscription post); its other 0 operation(s) came from the archive and were dropped from it. The archive is incomplete for this provider \u2014 re-harvest to restore _original/ as the full source of truth.",
+    "hihealth-pliant-partner-api-openapi.yml: previously refined output kept for 98 operation(s) no archived document covers (e.g. /access-links post, /access-links/{accessLinkId}/revoke post, /accounting/projects/{projectId} get); its other 128 operation(s) came from the archive and were dropped from it. The archive is incomplete for this provider \u2014 re-harvest to restore _original/ as the full source of truth."
+  ],
+  "notes": [
+    "sourced from openapi/_original/ (0 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "hihealth-pliant-customer-api-openapi.yml: upgraded openapi 3.0.1 -> OpenAPI 3.2.0",
+    "hihealth-pliant-partner-api-openapi.yml: upgraded openapi 3.0.1 -> OpenAPI 3.2.0",
+    "tag 'Accounting Projects' spans 2 source specs (hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml): per-path servers applied",
+    "tag 'Accounting Teams' spans 2 source specs (hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml): per-path servers applied",
+    "tag 'Accounting Transactions' spans 2 source specs (hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml): per-path servers applied",
+    "tag 'Card Accounts' spans 2 source specs (hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml): per-path servers applied",
+    "tag 'Card Controls' spans 2 source specs (hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml): per-path servers applied",
+    "tag 'Cardholders' spans 2 source specs (hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml): per-path servers applied",
+    "tag 'Cards' spans 2 source specs (hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml): per-path servers applied",
+    "tag 'Organizations' spans 2 source specs (hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml): per-path servers applied",
+    "tag 'Payments' spans 2 source specs (hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml): per-path servers applied",
+    "superseded outputs removed: hihealth-pliant-customer-api-openapi.yml, hihealth-pliant-partner-api-openapi.yml",
+    "apis.yml register: written (+30 apis, 32 total)"
+  ],
+  "skipped": []
+}

@@ -1,0 +1,572 @@
+openapi: 3.2.0
+info:
+  contact:
+    name: API Support
+    email: support@getpliant.com
+    url: https://www.getpliant.com
+  title: Pliant Partner Access Links API
+  description: Pliant Partner API
+  version: 2.1.0
+  license:
+    name: MIT
+    url: https://opensource.org/license/MIT
+servers:
+- url: https://partner-api.getpliant.com/api
+  description: Pliant Production Server
+- url: https://sandbox.partner-api.getpliant.com/api
+  description: Pliant Sandbox Server
+- url: https://pci-api.getpliant.com
+  description: PCI Vault Production Server
+- url: https://pci-sandbox.partner-api.getpliant.com
+  description: PCI Vault Sandbox Server
+security:
+- bearerAuth: []
+tags:
+- name: Access Links
+  description: 'Create and revoke a shareable access link for a card. The person who
+
+    opens the link does not need a Pliant account.'
+paths:
+  /access-links:
+    post:
+      summary: Create an access link
+      description: 'Creates a shareable access link for one card. Anyone with the link can
+
+        use a limited card widget — card details, lock or unlock, add to wallet
+
+        — without a Pliant account. Treat the link as sensitive.
+
+
+        Save `accessLink` from the response. You receive it only once. Creating
+
+        another link for a card that already has an active link replaces that
+
+        previous link; the old URL stops working.
+
+
+        The card must belong to `organizationId`, must not be expired or
+
+        terminated, and the card product must allow access links. Locked cards
+
+        are allowed. Expiry and how many times the link can be opened are set
+
+        by Pliant.'
+      tags:
+      - Access Links
+      operationId: create-access-link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessLinkCreate'
+            example:
+              organizationId: 893b749a-4352-4b14-9bed-f17a3756f712
+              grants:
+              - linkType: CARD_WIDGET
+                resourceId: 071806d2-7f11-4665-b117-05351d6b8533
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessLink'
+              example:
+                accessLinkId: 550e8400-e29b-41d4-a716-446655440000
+                accessLink: https://app.getpliant.com/access/abc123
+                issuedBy: 5af25ec4-9fe5-4fbb-9571-9a8c567fd85d
+                organizationId: 893b749a-4352-4b14-9bed-f17a3756f712
+                createdAt: '2026-09-29T10:00:00Z'
+                grants:
+                - linkType: CARD_WIDGET
+                  resourceType: card
+                  resourceId: 071806d2-7f11-4665-b117-05351d6b8533
+                  scope:
+                  - ACCESS_CARD_DETAILS
+                  - ADD_TO_WALLET
+                  - LOCK_UNLOCK_CARD
+                  - VIEW_ORG_FEATURES
+                  - VIEW_CARD_CATALOG
+                  expiresAt: '2026-10-29T10:00:00Z'
+                  maxUseCount: 3
+                  usedCount: 0
+        '400':
+          description: "Bad Request. Typical `errorCode` values:\n\n- `NOT_FOUND` — the card is missing or is not in this organization\n- `CARD_NOT_MINTABLE` — the card is expired or terminated\n- `ACCESS_LINK_NOT_ENABLED` — this card product does not allow access\n  links\n- `ONLY_ONE_CARD` — the request includes more than one card\n"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+  /access-links/{accessLinkId}/revoke:
+    post:
+      summary: Revoke an access link
+      description: 'Stops the access link. The URL no longer works. You can call this again
+
+        on an already-revoked link; you still get `200`. Unknown or not
+
+        permitted `accessLinkId` returns `403`.'
+      tags:
+      - Access Links
+      operationId: revoke-access-link
+      parameters:
+      - name: accessLinkId
+        in: path
+        required: true
+        description: Identifier of the access link to revoke.
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessLink'
+              example:
+                accessLinkId: 550e8400-e29b-41d4-a716-446655440000
+                issuedBy: 5af25ec4-9fe5-4fbb-9571-9a8c567fd85d
+                organizationId: 893b749a-4352-4b14-9bed-f17a3756f712
+                createdAt: '2026-09-29T10:00:00Z'
+                revokedAt: '2026-09-29T11:00:00Z'
+                grants:
+                - linkType: CARD_WIDGET
+                  resourceType: card
+                  resourceId: 071806d2-7f11-4665-b117-05351d6b8533
+                  scope:
+                  - ACCESS_CARD_DETAILS
+                  - ADD_TO_WALLET
+                  - LOCK_UNLOCK_CARD
+                  - VIEW_ORG_FEATURES
+                  - VIEW_CARD_CATALOG
+                  expiresAt: '2026-10-29T10:00:00Z'
+                  maxUseCount: 3
+                  usedCount: 0
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: The error code
+        exceptionId:
+          type: string
+          format: uuid
+          description: The id of the exception that was thrown
+        message:
+          type: string
+          description: The cause of the error or further explanations on the error
+    AccessLinkGrant:
+      type: object
+      required:
+      - linkType
+      - resourceType
+      - resourceId
+      properties:
+        linkType:
+          type: string
+          example: CARD_WIDGET
+        resourceType:
+          type: string
+          example: card
+        resourceId:
+          type: string
+          format: uuid
+          description: The card id.
+        scope:
+          type: array
+          items:
+            type: string
+          description: 'What the person with the link can do. For `CARD_WIDGET`: `ACCESS_CARD_DETAILS`,
+
+            `ADD_TO_WALLET`, `LOCK_UNLOCK_CARD`, `VIEW_ORG_FEATURES`,
+
+            `VIEW_CARD_CATALOG`.
+
+            '
+        expiresAt:
+          type: string
+          format: date-time
+          description: When the link stops working.
+        maxUseCount:
+          type: integer
+          description: How many times the link can be opened.
+        usedCount:
+          type: integer
+          description: How many times the link has been opened.
+    AccessLink:
+      type: object
+      required:
+      - accessLinkId
+      - issuedBy
+      - organizationId
+      - createdAt
+      - grants
+      properties:
+        accessLinkId:
+          type: string
+          format: uuid
+          description: Identifier of the access link.
+        accessLink:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'The shareable URL. Returned only when you create the link. You cannot
+
+            fetch it again.
+
+            '
+        issuedBy:
+          type: string
+          format: uuid
+          description: Who created the link.
+        organizationId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Set when the link has been revoked.
+        grants:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessLinkGrant'
+    AccessLinkCreate:
+      type: object
+      required:
+      - organizationId
+      - grants
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+          description: Organization the card belongs to.
+        grants:
+          type: array
+          minItems: 1
+          maxItems: 1
+          description: Exactly one card.
+          items:
+            type: object
+            required:
+            - linkType
+            - resourceId
+            properties:
+              linkType:
+                type: string
+                description: Use `CARD_WIDGET`.
+                example: CARD_WIDGET
+              resourceId:
+                type: string
+                format: uuid
+                description: The card id.
+  responses:
+    '429':
+      description: Too Many Requests. The API consumer has sent too many requests in a given amount of time. Please check our [API guidelines](/docs/pliant-api-guidelines#api-rate-limits).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Detailed description of the error and breached rate limit.
+    '409':
+      description: Conflict. The request could not be completed due to a conflict with the current state of the resource. You may retry the call.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '500':
+      description: Internal Server Error. The request was not completed due to an internal error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '401':
+      description: Unauthorized. The API consumer is not authorized to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '422':
+      description: Unprocessable Content. The request could not be completed due to contents of the request. The syntax of the request content was correct.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '403':
+      description: Forbidden. The API consumer is not allowed to access the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: This API uses oAuth2 with client credentials flow to [obtain the Bearer Token](/docs/authenticated-api-usage).
+      bearerFormat: JWT
+x-provenance:
+  method: searched
+  source: https://partner.getpliant.com/reference
+  harvested: '2026-10-14'
+  tool: harvest-readme-openapi.py
+  note: Assembled verbatim from the OpenAPI definition ReadMe embeds in each operation page of the provider's developer portal; paths and components merged by API title, nothing authored.
+  assembled_from:
+  - https://partner.getpliant.com/reference/activate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/activate-physical-card.md
+  - https://partner.getpliant.com/reference/approve-card-limit-requests.md
+  - https://partner.getpliant.com/reference/approve-card-request.md
+  - https://partner.getpliant.com/reference/assign-project-team.md
+  - https://partner.getpliant.com/reference/assign-to-team.md
+  - https://partner.getpliant.com/reference/batch-update-cards-limits.md
+  - https://partner.getpliant.com/reference/bulk-upsert-subscriptions.md
+  - https://partner.getpliant.com/reference/cancel-onboarding-submission.md
+  - https://partner.getpliant.com/reference/card-pan-and-cvv-pci-vault.md
+  - https://partner.getpliant.com/reference/claim-card-as-copilot.md
+  - https://partner.getpliant.com/reference/create-access-link.md
+  - https://partner.getpliant.com/reference/create-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/create-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-and-submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/create-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/create-beneficiary.md
+  - https://partner.getpliant.com/reference/create-card-account-payout.md
+  - https://partner.getpliant.com/reference/create-card-account-subscription.md
+  - https://partner.getpliant.com/reference/create-card-account-transfer.md
+  - https://partner.getpliant.com/reference/create-card-account.md
+  - https://partner.getpliant.com/reference/create-card-control-subscription.md
+  - https://partner.getpliant.com/reference/create-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/create-card-limit-request-subscriptions.md
+  - https://partner.getpliant.com/reference/create-card-limit-requests.md
+  - https://partner.getpliant.com/reference/create-card-request-subscription.md
+  - https://partner.getpliant.com/reference/create-card-request.md
+  - https://partner.getpliant.com/reference/create-card-subscription.md
+  - https://partner.getpliant.com/reference/create-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/create-cashback-subscription.md
+  - https://partner.getpliant.com/reference/create-custom-field-option.md
+  - https://partner.getpliant.com/reference/create-custom-field.md
+  - https://partner.getpliant.com/reference/create-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/create-external-transfer.md
+  - https://partner.getpliant.com/reference/create-lead.md
+  - https://partner.getpliant.com/reference/create-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/create-onboarding-submission.md
+  - https://partner.getpliant.com/reference/create-organization-subscription.md
+  - https://partner.getpliant.com/reference/create-organization.md
+  - https://partner.getpliant.com/reference/create-payment-subscription.md
+  - https://partner.getpliant.com/reference/create-project.md
+  - https://partner.getpliant.com/reference/create-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/create-receipt-subscription.md
+  - https://partner.getpliant.com/reference/create-statement-subscription.md
+  - https://partner.getpliant.com/reference/create-team.md
+  - https://partner.getpliant.com/reference/create-transaction-subscription.md
+  - https://partner.getpliant.com/reference/create-vop-verification.md
+  - https://partner.getpliant.com/reference/deactivate-card-account.md
+  - https://partner.getpliant.com/reference/deactivate-cardholder.md
+  - https://partner.getpliant.com/reference/deactivate-partner-organization-authorization.md
+  - https://partner.getpliant.com/reference/deactivate-team.md
+  - https://partner.getpliant.com/reference/delete-card-limit-requests.md
+  - https://partner.getpliant.com/reference/delete-card-request.md
+  - https://partner.getpliant.com/reference/delete-custom-field-option.md
+  - https://partner.getpliant.com/reference/delete-custom-field.md
+  - https://partner.getpliant.com/reference/delete-project.md
+  - https://partner.getpliant.com/reference/delete-receipt.md
+  - https://partner.getpliant.com/reference/delete-subscription.md
+  - https://partner.getpliant.com/reference/delete-team.md
+  - https://partner.getpliant.com/reference/delete-transaction-comment.md
+  - https://partner.getpliant.com/reference/enable-pliant-app-access.md
+  - https://partner.getpliant.com/reference/enroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/generate-test-transactions-in-sandbox.md
+  - https://partner.getpliant.com/reference/get-account-entries.md
+  - https://partner.getpliant.com/reference/get-accounting-transactions-batch.md
+  - https://partner.getpliant.com/reference/get-available-cards.md
+  - https://partner.getpliant.com/reference/get-beneficiaries.md
+  - https://partner.getpliant.com/reference/get-beneficiary-details.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/get-beneficiary-payment-details.md
+  - https://partner.getpliant.com/reference/get-callback-details.md
+  - https://partner.getpliant.com/reference/get-callback-log.md
+  - https://partner.getpliant.com/reference/get-callback-subscriptions.md
+  - https://partner.getpliant.com/reference/get-callback.md
+  - https://partner.getpliant.com/reference/get-card-account-details.md
+  - https://partner.getpliant.com/reference/get-card-accounts-available-currencies.md
+  - https://partner.getpliant.com/reference/get-card-accounts-summary.md
+  - https://partner.getpliant.com/reference/get-card-accounts.md
+  - https://partner.getpliant.com/reference/get-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-countries.md
+  - https://partner.getpliant.com/reference/get-card-controls-supported-currencies.md
+  - https://partner.getpliant.com/reference/get-card-limit-request-detail.md
+  - https://partner.getpliant.com/reference/get-card-pin.md
+  - https://partner.getpliant.com/reference/get-card-request-details.md
+  - https://partner.getpliant.com/reference/get-card-requests.md
+  - https://partner.getpliant.com/reference/get-cardholder-details.md
+  - https://partner.getpliant.com/reference/get-cards.md
+  - https://partner.getpliant.com/reference/get-cashback-amounts.md
+  - https://partner.getpliant.com/reference/get-cashback-configuration.md
+  - https://partner.getpliant.com/reference/get-cashback-history.md
+  - https://partner.getpliant.com/reference/get-cashback-receipt.md
+  - https://partner.getpliant.com/reference/get-cashback-transactions.md
+  - https://partner.getpliant.com/reference/get-custom-field-options.md
+  - https://partner.getpliant.com/reference/get-custom-fields.md
+  - https://partner.getpliant.com/reference/get-external-transfer-details.md
+  - https://partner.getpliant.com/reference/get-external-transfers.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization-details.md
+  - https://partner.getpliant.com/reference/get-mobile-wallet-tokenization.md
+  - https://partner.getpliant.com/reference/get-multiple-card-details.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-activity-codes.md
+  - https://partner.getpliant.com/reference/get-onboarding-reference-data-industry.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission-document.md
+  - https://partner.getpliant.com/reference/get-onboarding-submission.md
+  - https://partner.getpliant.com/reference/get-organization-details.md
+  - https://partner.getpliant.com/reference/get-organization-external-bank-account.md
+  - https://partner.getpliant.com/reference/get-organization-risk-status.md
+  - https://partner.getpliant.com/reference/get-organizations-external-bank-accounts.md
+  - https://partner.getpliant.com/reference/get-otp-for-pci-widget.md
+  - https://partner.getpliant.com/reference/get-partner-signing-jwks.md
+  - https://partner.getpliant.com/reference/get-payment-program.md
+  - https://partner.getpliant.com/reference/get-payments-detail.md
+  - https://partner.getpliant.com/reference/get-payments.md
+  - https://partner.getpliant.com/reference/get-project.md
+  - https://partner.getpliant.com/reference/get-projects.md
+  - https://partner.getpliant.com/reference/get-receipt-automatcher-status.md
+  - https://partner.getpliant.com/reference/get-receipt-detail.md
+  - https://partner.getpliant.com/reference/get-receipts.md
+  - https://partner.getpliant.com/reference/get-single-card-details.md
+  - https://partner.getpliant.com/reference/get-statement-csv.md
+  - https://partner.getpliant.com/reference/get-statement-detail.md
+  - https://partner.getpliant.com/reference/get-statementpdf.md
+  - https://partner.getpliant.com/reference/get-statements.md
+  - https://partner.getpliant.com/reference/get-team.md
+  - https://partner.getpliant.com/reference/get-teams.md
+  - https://partner.getpliant.com/reference/get-transactions-detail-batch.md
+  - https://partner.getpliant.com/reference/get-transactions-detail.md
+  - https://partner.getpliant.com/reference/get-transactions.md
+  - https://partner.getpliant.com/reference/get-vop-verification.md
+  - https://partner.getpliant.com/reference/invite-cardholders.md
+  - https://partner.getpliant.com/reference/invite-owner.md
+  - https://partner.getpliant.com/reference/issue-card-instant-with-pci.md
+  - https://partner.getpliant.com/reference/issue-card-instant.md
+  - https://partner.getpliant.com/reference/issue-card.md
+  - https://partner.getpliant.com/reference/list-card-limit-requests.md
+  - https://partner.getpliant.com/reference/list-cardholders.md
+  - https://partner.getpliant.com/reference/list-identity-verifications.md
+  - https://partner.getpliant.com/reference/list-onboarding-submissions.md
+  - https://partner.getpliant.com/reference/list-organizations.md
+  - https://partner.getpliant.com/reference/load-cards-batch.md
+  - https://partner.getpliant.com/reference/lock-card.md
+  - https://partner.getpliant.com/reference/metadata-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/reassign-platform-fee-card.md
+  - https://partner.getpliant.com/reference/receipt-as-merged-pdf.md
+  - https://partner.getpliant.com/reference/receipt-as-pdf.md
+  - https://partner.getpliant.com/reference/receipt-original.md
+  - https://partner.getpliant.com/reference/receipt-thumbnail.md
+  - https://partner.getpliant.com/reference/redeem-cashback.md
+  - https://partner.getpliant.com/reference/register-cardholders.md
+  - https://partner.getpliant.com/reference/reject-card-limit-requests.md
+  - https://partner.getpliant.com/reference/reject-card-request.md
+  - https://partner.getpliant.com/reference/remove-account-entry-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-project-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-team-subscription.md
+  - https://partner.getpliant.com/reference/remove-accounting-transaction-subscription.md
+  - https://partner.getpliant.com/reference/remove-beneficiary-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-account-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-control-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-copilot-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-limit-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-card-request-subscription.md
+  - https://partner.getpliant.com/reference/remove-cardholder-subscription.md
+  - https://partner.getpliant.com/reference/remove-cards-subscription.md
+  - https://partner.getpliant.com/reference/remove-cashback-subscription.md
+  - https://partner.getpliant.com/reference/remove-external-transfer-subscription.md
+  - https://partner.getpliant.com/reference/remove-mobile-wallet-tokenization-subscription.md
+  - https://partner.getpliant.com/reference/remove-onboarding-submission-subscription.md
+  - https://partner.getpliant.com/reference/remove-organization-subscription.md
+  - https://partner.getpliant.com/reference/remove-payment-subscription.md
+  - https://partner.getpliant.com/reference/remove-pliant-app-access.md
+  - https://partner.getpliant.com/reference/remove-receipt-automatching-subscription.md
+  - https://partner.getpliant.com/reference/remove-receipt-subscription.md
+  - https://partner.getpliant.com/reference/remove-statement-subscription.md
+  - https://partner.getpliant.com/reference/remove-transaction-subscription.md
+  - https://partner.getpliant.com/reference/replace-card.md
+  - https://partner.getpliant.com/reference/resend-callbacks.md
+  - https://partner.getpliant.com/reference/revoke-access-link.md
+  - https://partner.getpliant.com/reference/search-callbacks.md
+  - https://partner.getpliant.com/reference/simulate-prefund-payment.md
+  - https://partner.getpliant.com/reference/simulate-transaction-status-transition.md
+  - https://partner.getpliant.com/reference/start-identity-verification.md
+  - https://partner.getpliant.com/reference/stop-identity-verification.md
+  - https://partner.getpliant.com/reference/submit-external-transfer.md
+  - https://partner.getpliant.com/reference/submit-onboarding-submission.md
+  - https://partner.getpliant.com/reference/terminate-card.md
+  - https://partner.getpliant.com/reference/unassign-from-team.md
+  - https://partner.getpliant.com/reference/unassign-project-team.md
+  - https://partner.getpliant.com/reference/unenroll-card-click-to-pay.md
+  - https://partner.getpliant.com/reference/unload-cards-batch.md
+  - https://partner.getpliant.com/reference/unlock-card.md
+  - https://partner.getpliant.com/reference/update-accounting-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-beneficiary-activation.md
+  - https://partner.getpliant.com/reference/update-beneficiary-payment-detail.md
+  - https://partner.getpliant.com/reference/update-beneficiary.md
+  - https://partner.getpliant.com/reference/update-card-account.md
+  - https://partner.getpliant.com/reference/update-card-controls-by-card.md
+  - https://partner.getpliant.com/reference/update-card-copilots.md
+  - https://partner.getpliant.com/reference/update-card-label.md
+  - https://partner.getpliant.com/reference/update-card-limit.md
+  - https://partner.getpliant.com/reference/update-card-validity-period.md
+  - https://partner.getpliant.com/reference/update-card.md
+  - https://partner.getpliant.com/reference/update-cardholders.md
+  - https://partner.getpliant.com/reference/update-custom-field-option.md
+  - https://partner.getpliant.com/reference/update-custom-field.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-accounting-transaction.md
+  - https://partner.getpliant.com/reference/update-custom-fields-on-card.md
+  - https://partner.getpliant.com/reference/update-external-transfer-status.md
+  - https://partner.getpliant.com/reference/update-external-transfer.md
+  - https://partner.getpliant.com/reference/update-organization.md
+  - https://partner.getpliant.com/reference/update-partner-settings.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-payments-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-project.md
+  - https://partner.getpliant.com/reference/update-team.md
+  - https://partner.getpliant.com/reference/update-transaction-category.md
+  - https://partner.getpliant.com/reference/update-transaction-comment.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status-batch.md
+  - https://partner.getpliant.com/reference/update-transaction-partner-submission-status.md
+  - https://partner.getpliant.com/reference/update-transaction-receipt-upload.md
+  - https://partner.getpliant.com/reference/upload-receipt-to-automatcher.md
+  - https://partner.getpliant.com/reference/upload-receipt.md
+  - https://partner.getpliant.com/reference/validate-onboarding-submission.md
+  merge:
+    pages: 225
+    deduped: 1508
+    conflicts_kept_first: 0
